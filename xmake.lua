@@ -1,5 +1,6 @@
 add_rules("mode.debug", "mode.release")
 
+add_requires("boost")
 add_requires("sqlite3")
 add_requires("openssl")
 add_requires("libcurl")
@@ -12,6 +13,13 @@ target("network", function ()
   set_kind("static")
   add_files("network/*.cc")
   add_packages("libcurl", { public = true })
+end)
+
+target("network2", function () 
+  set_kind("static")
+  add_files("network2/rest_api.cc")
+  add_packages("boost", { public = true })
+  add_packages("openssl", { public = true })
 end)
 
 target("backtest", function () 
