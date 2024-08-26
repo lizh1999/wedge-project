@@ -1,0 +1,7 @@
+# Xmake cache
+.xmake/
+build/
+
+.vscode
+dataset
+out.log
