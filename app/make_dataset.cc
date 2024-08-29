@@ -15,36 +15,14 @@ using namespace wedge;
 
 class BinanceDownloader {
  public:
-  BinanceDownloader(const std::string& symbol, const std::string& interval,
-                    const std::string& end_date)
-      : symbol_(symbol),
-        interval_(interval),
-        end_time_(parse_date_to_timestamp(end_date)) {
-    client_.set_proxy("http://127.0.0.1:7890");
-
-    // 初始化 SQLite 数据库
-    int rc =
-        sqlite3_open((symbol_ + "_" + interval_ + "_klines.db").c_str(), &db_);
-    assert(rc == SQLITE_OK && "Failed to open SQLite database");
-
-    // 创建表结构
-    const char* create_table_sql = R"(
-      CREATE TABLE IF NOT EXISTS klines (
-        open_time INTEGER PRIMARY KEY,
-        close_time INTEGER,
-        open_price DOUBLE,
-        high_price DOUBLE,
-        low_price DOUBLE,
-        close_price DOUBLE,
-        volume DOUBLE,
-        quote_volume DOUBLE,
-        traders INTEGER,
-        taker_buy_base DOUBLE,
-        taker_buy_quote DOUBLE
-      );
-    )";
-    rc = sqlite3_exec(db_, create_table_sql, nullptr, nullptr, nullptr);
-    assert(rc == SQLITE_OK && "Failed to create table in SQLite database");
+  BinanceDownloader(const std::string& symbol, const std::string& interval)
+      : symbol_(symbol), interval_(interval), db_(nullptr) {
+    open_database();
+    if (is_new_database()) {
+      create_table();
+    }
+    start_time_ = get_max_start_time();
+    end_time_ = get_current_timestamp();
   }
 
   ~BinanceDownloader() {
@@ -54,24 +32,23 @@ class BinanceDownloader {
   }
 
   void download_all_klines() {
-    int64_t start_time = 0;
     const int limit = 1000;
     const int request_interval_ms = 50;  // 设置请求间隔为50毫秒
 
-    while (start_time < end_time_) {
+    while (start_time_ < end_time_) {
       // 记录当前时间，计算下次请求的发送时间
       auto next_request_time = std::chrono::steady_clock::now() +
                                std::chrono::milliseconds(request_interval_ms);
 
-      std::string url = build_url(start_time, end_time_, limit);
+      std::string url = build_url(start_time_, end_time_, limit);
       RestResult result = client_.get(url);
 
       if (result.has_value()) {
         process_response(result.value());
-        // 更新 start_time 为下一个时间段的开始时间
+        // 更新 start_time_ 为下一个时间段的开始时间
         json j = json::parse(result.value());
         if (!j.empty()) {
-          start_time = j.back()[6];  // K 线结束时间戳
+          start_time_ = j.back()[6];  // K 线结束时间戳
         }
       } else {
         const RestError& error = result.error();
@@ -87,9 +64,66 @@ class BinanceDownloader {
  private:
   std::string symbol_;
   std::string interval_;
+  int64_t start_time_;
   int64_t end_time_;
   RestClient client_;
-  sqlite3* db_ = nullptr;
+  sqlite3* db_;
+
+  void open_database() {
+    int rc =
+        sqlite3_open((symbol_ + "_" + interval_ + "_klines.db").c_str(), &db_);
+    assert(rc == SQLITE_OK && "Failed to open SQLite database");
+  }
+
+  bool is_new_database() {
+    const char* check_table_sql =
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='klines';";
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(db_, check_table_sql, -1, &stmt, nullptr);
+    assert(rc == SQLITE_OK && "Failed to prepare check statement");
+
+    rc = sqlite3_step(stmt);
+    bool is_new_db = (rc != SQLITE_ROW);
+    sqlite3_finalize(stmt);
+
+    return is_new_db;
+  }
+
+  void create_table() {
+    const char* create_table_sql = R"(
+      CREATE TABLE IF NOT EXISTS klines (
+        open_time INTEGER PRIMARY KEY,
+        close_time INTEGER,
+        open_price DOUBLE,
+        high_price DOUBLE,
+        low_price DOUBLE,
+        close_price DOUBLE,
+        volume DOUBLE,
+        quote_volume DOUBLE,
+        traders INTEGER,
+        taker_buy_base DOUBLE,
+        taker_buy_quote DOUBLE
+      );
+    )";
+    int rc = sqlite3_exec(db_, create_table_sql, nullptr, nullptr, nullptr);
+    assert(rc == SQLITE_OK && "Failed to create table in SQLite database");
+  }
+
+  int64_t get_max_start_time() {
+    const char* select_max_time_sql = "SELECT MAX(close_time) FROM klines;";
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(db_, select_max_time_sql, -1, &stmt, nullptr);
+    assert(rc == SQLITE_OK && "Failed to prepare select statement");
+
+    rc = sqlite3_step(stmt);
+    int64_t max_start_time =
+        (rc == SQLITE_ROW && sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+            ? sqlite3_column_int64(stmt, 0)
+            : 0;
+    sqlite3_finalize(stmt);
+
+    return max_start_time;
+  }
 
   std::string build_url(int64_t start_time, int64_t end_time, int limit) const {
     return "https://api1.binance.com/api/v3/klines?symbol=" + symbol_ +
@@ -152,14 +186,11 @@ class BinanceDownloader {
     }
   }
 
-  int64_t parse_date_to_timestamp(const std::string& date_str) const {
-    std::tm t = {};
-    std::istringstream ss(date_str);
-    ss >> std::get_time(&t, "%Y-%m-%d");
-    assert(!ss.fail() && "Failed to parse date string");
-    return std::chrono::system_clock::from_time_t(std::mktime(&t))
-               .time_since_epoch() /
-           std::chrono::milliseconds(1);
+  int64_t get_current_timestamp() const {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               now.time_since_epoch())
+        .count();
   }
 };
 
@@ -167,7 +198,8 @@ int main() {
   auto curl_global = CurlGlobal::init();
   assert(curl_global.has_value() && "CURL Initialization Error");
 
-  BinanceDownloader downloader("ETHUSDT", "1m", "2024-08-01");
+  // TODO: 使用json格式文件配置下载任务
+  BinanceDownloader downloader("BTCUSDT", "1m");
   downloader.download_all_klines();
   return 0;
 }
