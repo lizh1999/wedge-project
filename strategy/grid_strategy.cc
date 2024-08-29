@@ -1,4 +1,6 @@
 #include <cassert>
+#include <cmath>
+#include <limits>
 #include <unordered_map>
 
 #include "common/optional.h"
@@ -40,7 +42,7 @@ class GridStrategy : public IStrategy {
   }
 
   void on_order_filled(OrderIndex index) override {
-    double filled_price = NAN;
+    double filled_price = std::numeric_limits<double>::quiet_NaN();
     if (buy_order_ && buy_order_->index == index) {
       filled_price = buy_order_->price;
       buy_order_ = nullopt;
@@ -49,7 +51,7 @@ class GridStrategy : public IStrategy {
       filled_price = sell_order_->price;
       sell_order_ = nullopt;
     }
-    assert(!isnan(filled_price));
+    assert(!std::isnan(filled_price));
     cancel_all_orders();
     place_order(filled_price);
   }

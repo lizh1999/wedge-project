@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #include <sqlite3.h>
@@ -12,16 +13,15 @@ namespace wedge {
 
 class SqlDataLoader : public IDataLoader {
  public:
-  SqlDataLoader(const std::string& filename,
-                optional<std::string> start_time,
+  SqlDataLoader(const std::string& filename, optional<std::string> start_time,
                 optional<std::string> end_time) {
     int rc = sqlite3_open(filename.c_str(), &db_);
     assert(rc == SQLITE_OK && "Failed to open SQLite database");
 
     int64_t start_timestamp =
         start_time.transform(as_unix_timestamp).value_or(0);
-    int64_t end_timestamp =
-        end_time.transform(as_unix_timestamp).value_or(LLONG_MAX);
+    int64_t end_timestamp = end_time.transform(as_unix_timestamp)
+                                .value_or(std::numeric_limits<int64_t>::max());
     const char* sql = R"(
       SELECT open_time, close_time, open_price, high_price, low_price, close_price, volume,
              quote_volume, traders, taker_buy_base, taker_buy_quote 
@@ -85,9 +85,9 @@ class SqlDataLoader : public IDataLoader {
   sqlite3_stmt* stmt_ = nullptr;
 };
 
-std::unique_ptr<IDataLoader> sql_data_loader(
-    const std::string& filename, optional<std::string> start_time,
-    optional<std::string> end_time) {
+std::unique_ptr<IDataLoader> sql_data_loader(const std::string& filename,
+                                             optional<std::string> start_time,
+                                             optional<std::string> end_time) {
   return std::make_unique<SqlDataLoader>(filename, start_time, end_time);
 }
 
