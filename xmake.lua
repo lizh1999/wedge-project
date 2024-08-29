@@ -1,25 +1,32 @@
 add_rules("mode.debug", "mode.release")
 
-add_requires("boost")
-add_requires("sqlite3")
-add_requires("openssl")
+add_requires("fmt")
 add_requires("libcurl")
 add_requires("nlohmann_json")
+add_requires("openssl")
+add_requires("sqlite3")
+add_requires("tl_expected")
+add_requires("tl_optional")
 
-set_languages("cxx23")
+set_languages("cxx17")
 add_includedirs("$(projectdir)")
+
+if is_plat("windows") then
+  add_cxxflags("/utf-8")
+end
+
+target("common", function () 
+  set_kind("headeronly")
+  add_packages("fmt", { public = true })
+  add_packages("tl_expected", { public = true })
+  add_packages("tl_optional", { public = true })
+end)
 
 target("network", function () 
   set_kind("static")
   add_files("network/*.cc")
+  add_deps("common")
   add_packages("libcurl", { public = true })
-end)
-
-target("network2", function () 
-  set_kind("static")
-  add_files("network2/rest_api.cc")
-  add_packages("boost", { public = true })
-  add_packages("openssl", { public = true })
 end)
 
 target("backtest", function () 
@@ -33,12 +40,14 @@ target("backtest", function ()
     "backtest/backtest_context.cc",
     "backtest/data_loader.cc"
   )
+  add_deps("common")
   add_packages("sqlite3")
 end)
 
 target("strategy", function () 
   set_kind("static")
   add_files("strategy/grid_strategy.cc")
+  add_deps("common")
 end)
 
 target("make_dataset", function () 

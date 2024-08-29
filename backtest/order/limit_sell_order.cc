@@ -1,9 +1,6 @@
 #include "backtest/backtest_context.h"
 #include "backtest/order/order.h"
 
-#include <format>
-#include <iostream>
-
 namespace wedge {
 
 class LimitSellOrder : public IOrder {

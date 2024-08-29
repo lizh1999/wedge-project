@@ -1,11 +1,14 @@
 #pragma once
 
-#include <expected>
 #include <string>
 
 #include <curl/curl.h>
 
+#include "common/expected.h"
+
 namespace wedge {
+
+using tl::expected;
 
 class CurlError {
  public:
@@ -23,7 +26,7 @@ class CurlError {
 
 class CurlGlobal {
  public:
-  static std::expected<CurlGlobal, CurlError> init();
+  static expected<CurlGlobal, CurlError> init();
   ~CurlGlobal();
 };
 
@@ -62,4 +65,4 @@ class HttpError {
   long code_;
 };
 
-}
+}  // namespace wedge

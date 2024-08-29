@@ -13,8 +13,8 @@ namespace wedge {
 class SqlDataLoader : public IDataLoader {
  public:
   SqlDataLoader(const std::string& filename,
-                std::optional<std::string> start_time,
-                std::optional<std::string> end_time) {
+                optional<std::string> start_time,
+                optional<std::string> end_time) {
     int rc = sqlite3_open(filename.c_str(), &db_);
     assert(rc == SQLITE_OK && "Failed to open SQLite database");
 
@@ -47,7 +47,7 @@ class SqlDataLoader : public IDataLoader {
     }
   }
 
-  std::optional<Candle> next() override {
+  optional<Candle> next() override {
     int rc = sqlite3_step(stmt_);
     if (rc == SQLITE_ROW) {
       Candle candle;
@@ -64,11 +64,11 @@ class SqlDataLoader : public IDataLoader {
       candle.taker_buy_quote = sqlite3_column_double(stmt_, 10);
       return candle;
     } else if (rc == SQLITE_DONE) {
-      return std::nullopt;
+      return nullopt;
     } else {
       std::cerr << "Error while fetching data: " << sqlite3_errmsg(db_)
                 << std::endl;
-      return std::nullopt;
+      return nullopt;
     }
   }
 
@@ -86,8 +86,8 @@ class SqlDataLoader : public IDataLoader {
 };
 
 std::unique_ptr<IDataLoader> sql_data_loader(
-    const std::string& filename, std::optional<std::string> start_time,
-    std::optional<std::string> end_time) {
+    const std::string& filename, optional<std::string> start_time,
+    optional<std::string> end_time) {
   return std::make_unique<SqlDataLoader>(filename, start_time, end_time);
 }
 

@@ -1,7 +1,7 @@
 #include <cassert>
-#include <iostream>
 #include <unordered_map>
 
+#include "common/optional.h"
 #include "strategy/strategy.h"
 
 namespace wedge {
@@ -43,11 +43,11 @@ class GridStrategy : public IStrategy {
     double filled_price = NAN;
     if (buy_order_ && buy_order_->index == index) {
       filled_price = buy_order_->price;
-      buy_order_ = std::nullopt;
+      buy_order_ = nullopt;
     }
     if (sell_order_ && sell_order_->index == index) {
       filled_price = sell_order_->price;
-      sell_order_ = std::nullopt;
+      sell_order_ = nullopt;
     }
     assert(!isnan(filled_price));
     cancel_all_orders();
@@ -71,11 +71,11 @@ class GridStrategy : public IStrategy {
   void cancel_all_orders() {
     if (buy_order_.has_value()) {
       broker_->cancel(buy_order_->index);
-      buy_order_ = std::nullopt;
+      buy_order_ = nullopt;
     }
     if (sell_order_.has_value()) {
       broker_->cancel(sell_order_->index);
-      sell_order_ = std::nullopt;
+      sell_order_ = nullopt;
     }
   }
 
@@ -101,8 +101,8 @@ class GridStrategy : public IStrategy {
   double order_volume_;
   double grid_spacing_;
 
-  std::optional<OrderInfo> buy_order_;
-  std::optional<OrderInfo> sell_order_;
+  optional<OrderInfo> buy_order_;
+  optional<OrderInfo> sell_order_;
 };
 
 std::unique_ptr<IStrategy> grid_strategy(std::unique_ptr<IBroker> broker,

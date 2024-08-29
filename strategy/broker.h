@@ -10,7 +10,12 @@ class OrderIndex {
   explicit OrderIndex(int index) : index_(index) {}
   int index() const { return index_; }
 
-  auto operator<=>(const OrderIndex& other) const = default;
+  bool operator<(const OrderIndex& other) const {
+    return index_ < other.index_;
+  }
+  bool operator==(const OrderIndex& other) const {
+    return index_ == other.index_;
+  }
 
  private:
   int index_;

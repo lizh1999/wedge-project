@@ -1,10 +1,10 @@
 #include "backtest/backtest_context.h"
 
 #include <cassert>
-#include <format>
-#include <iostream>
+#include <cstdio>
 
 #include "backtest/backtest_broker.h"
+#include "common/format.h"
 
 namespace wedge {
 
@@ -67,9 +67,9 @@ static Minutes duration_of(const Candle& candle) {
 void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
   Minutes duration = 1min;
   bool has_setup = false;
-  std::optional<Candle> iterator;
+  optional<Candle> iterator;
   do {
-    std::optional<Candle> candle;
+    optional<Candle> candle;
     while ((iterator = data_loader->next())) {
       if (!candle.has_value()) {
         candle = iterator;
@@ -88,12 +88,10 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
       } else {
         duration = strategy_->update(*candle);
       }
-      std::println(std::cout, "balance {} position {} value {} price {}",
-        account_.balance(),
-        account_.position(),
-        account_.balance() + account_.position() * candle->close_price,
-        candle->close_price
-      );
+      println(stdout, "balance {} position {} value {} price {}",
+              account_.balance(), account_.position(),
+              account_.balance() + account_.position() * candle->close_price,
+              candle->close_price);
     }
   } while (iterator.has_value());
 }
@@ -105,7 +103,7 @@ bool BacktestContext::execute_buy_order(double quanity, double price) {
   }
   account_.update_balance(-total_cost);
   account_.update_position(quanity);
-  std::println(std::cout, "buy order cost {}", -total_cost);
+  println(stdout, "buy order cost {}", -total_cost);
   return true;
 }
 
@@ -116,7 +114,7 @@ bool BacktestContext::execute_sell_order(double quanity, double price) {
   double total_income = quanity * price;
   account_.update_balance(total_income);
   account_.update_position(-quanity);
-  std::println(std::cout, "sell order income {}", total_income);
+  println(stdout, "sell order income {}", total_income);
   return true;
 }
 

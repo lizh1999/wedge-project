@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cassert>
-#include <optional>
 #include <string>
 
-#include "curl_util.h"
+#include "common/optional.h"
+#include "network/curl_util.h"
 
 namespace wedge {
 
@@ -52,14 +52,14 @@ class RestError {
 class RestResult {
  public:
   RestResult(std::string value) : result_(std::move(value)) {}
-  RestResult(RestError error) : result_(std::unexpected(std::move(error))) {}
+  RestResult(RestError error) : result_(unexpected(std::move(error))) {}
 
   bool has_value() const { return result_.has_value(); }
   std::string& value() { return result_.value(); }
   const RestError& error() const { return result_.error(); }
 
  private:
-  std::expected<std::string, RestError> result_;
+  expected<std::string, RestError> result_;
 };
 
 class RestClient {
@@ -81,7 +81,7 @@ class RestClient {
  private:
   enum class HttpMethod { Get, Post, Put, Delete };
 
-  std::optional<std::string> proxy_;
+  optional<std::string> proxy_;
   CURL* curl_;
 
   RestResult perform_request(const std::string& url, HttpMethod method,
