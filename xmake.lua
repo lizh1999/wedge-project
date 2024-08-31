@@ -11,6 +11,8 @@ add_requires("tl_optional")
 set_languages("cxx17")
 add_includedirs("$(projectdir)")
 
+local project_root = os.projectdir():gsub("\\", "/")
+
 if is_plat("windows") then
   add_cxxflags("/utf-8")
 end
@@ -55,6 +57,7 @@ target("make_dataset", function ()
   add_files("app/make_dataset.cc")
   add_deps("network")
   add_packages("nlohmann_json", "sqlite3")
+  add_defines("PROJECT_ROOT_DIR=\"" .. project_root .. "\"")
 end)
 
 target("test_strategy", function () 

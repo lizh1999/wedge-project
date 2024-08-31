@@ -1,0 +1,14 @@
+{
+  "tasks" : 
+  [
+    {
+      "symbol" : "BTC",
+      "interval" : "1m"
+    },
+    {
+      "symbol" : "ETH",
+      "interval" : "1m"
+    }
+  ],
+  "path" : "dataset"
+}

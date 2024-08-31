@@ -5,3 +5,5 @@ build/
 .vscode
 dataset
 out.log
+
+.wedge/binance.json

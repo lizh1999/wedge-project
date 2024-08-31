@@ -5,9 +5,10 @@
 #include <sstream>
 #include <thread>
 
-#include <sqlite3.h>
 #include <nlohmann/json.hpp>
+#include <sqlite3.h>
 
+#include "common/format.h"
 #include "network/rest_api.h"
 
 using json = nlohmann::json;
@@ -15,8 +16,9 @@ using namespace wedge;
 
 class BinanceDownloader {
  public:
-  BinanceDownloader(const std::string& symbol, const std::string& interval)
-      : symbol_(symbol), interval_(interval), db_(nullptr) {
+  BinanceDownloader(const std::string filename, const std::string& symbol,
+                    const std::string& interval)
+      : filename_(filename), symbol_(symbol), interval_(interval), db_(nullptr) {
     open_database();
     if (is_new_database()) {
       create_table();
@@ -62,6 +64,7 @@ class BinanceDownloader {
   }
 
  private:
+  std::string filename_;
   std::string symbol_;
   std::string interval_;
   int64_t start_time_;
@@ -70,8 +73,7 @@ class BinanceDownloader {
   sqlite3* db_;
 
   void open_database() {
-    int rc =
-        sqlite3_open((symbol_ + "_" + interval_ + "_klines.db").c_str(), &db_);
+    int rc = sqlite3_open(filename_.c_str(), &db_);
     assert(rc == SQLITE_OK && "Failed to open SQLite database");
   }
 
@@ -194,12 +196,34 @@ class BinanceDownloader {
   }
 };
 
+struct Task {
+  std::string symbol;
+  std::string interval;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Task, symbol, interval)
+};
+
+struct Config {
+  std::vector<Task> tasks;
+  std::string path;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path)
+};
+
 int main() {
+  std::string config_path = format("{}/.wedge/dataset.json", PROJECT_ROOT_DIR);
+  std::ifstream config_file(config_path);
+  assert(config_file.is_open() && "Open config file error");
+  json j;
+  config_file >> j;
+  auto config = j.get<Config>();
+
   auto curl_global = CurlGlobal::init();
   assert(curl_global.has_value() && "CURL Initialization Error");
 
-  // TODO: 使用json格式文件配置下载任务
-  BinanceDownloader downloader("BTCUSDT", "1m");
-  downloader.download_all_klines();
+  for (const auto& task : config.tasks) {
+    auto filename = format("{}/{}/{}USDT_{}_klines.db", PROJECT_ROOT_DIR,
+                           config.path, task.symbol, task.interval);
+    BinanceDownloader downloader(filename, "BTCUSDT", "1m");
+    downloader.download_all_klines();
+  }
   return 0;
 }

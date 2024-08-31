@@ -4,4 +4,5 @@
 
 namespace wedge {
 using fmt::println;
+using fmt::format;
 }
