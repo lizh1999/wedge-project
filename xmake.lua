@@ -46,6 +46,15 @@ target("backtest", function ()
   add_packages("sqlite3")
 end)
 
+target("binance", function () 
+  set_kind("static")
+  add_files(
+    "binance/binance_client.cc"
+  )
+  add_deps("common", "network")
+  add_packages("nlohmann_json", "openssl")
+end)
+
 target("strategy", function () 
   set_kind("static")
   add_files("strategy/grid_strategy.cc")
@@ -64,4 +73,10 @@ target("test_strategy", function ()
   set_kind("binary")
   add_files("app/test_strategy.cc")
   add_deps("backtest", "strategy")
+end)
+
+target("main", function () 
+  set_kind("binary")
+  add_files("app/main.cc")
+  add_deps("binance")
 end)
