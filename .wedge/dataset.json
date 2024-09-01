@@ -2,13 +2,14 @@
   "tasks" : 
   [
     {
-      "symbol" : "BTC",
+      "symbol" : "BTCUSDT",
       "interval" : "1m"
     },
     {
-      "symbol" : "ETH",
+      "symbol" : "ETHUSDT",
       "interval" : "1m"
     }
   ],
-  "path" : "dataset"
+  "path" : "dataset",
+  "proxy" : "127.0.0.1:7890"
 }

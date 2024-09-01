@@ -33,6 +33,10 @@ class BinanceDownloader {
     }
   }
 
+  void set_proxy(const std::string& proxy) {
+    client_.set_proxy(proxy);
+  }
+
   void download_all_klines() {
     const int limit = 1000;
     const int request_interval_ms = 50;  // 设置请求间隔为50毫秒
@@ -53,7 +57,7 @@ class BinanceDownloader {
           start_time_ = j.back()[6];  // K 线结束时间戳
         }
       } else {
-        const RestError& error = result.error();
+        const auto& error = result.error();
         std::cerr << "Error: " << error.message() << "\nurl: " << url
                   << std::endl;
       }
@@ -205,7 +209,8 @@ struct Task {
 struct Config {
   std::vector<Task> tasks;
   std::string path;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path)
+  std::string proxy;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path, proxy)
 };
 
 int main() {
@@ -220,9 +225,12 @@ int main() {
   assert(curl_global.has_value() && "CURL Initialization Error");
 
   for (const auto& task : config.tasks) {
-    auto filename = format("{}/{}/{}USDT_{}_klines.db", PROJECT_ROOT_DIR,
+    auto filename = format("{}/{}/{}_{}_klines.db", PROJECT_ROOT_DIR,
                            config.path, task.symbol, task.interval);
-    BinanceDownloader downloader(filename, "BTCUSDT", "1m");
+    BinanceDownloader downloader(filename, task.symbol, task.interval);
+    if (!config.proxy.empty()) {
+      downloader.set_proxy(config.proxy);
+    }
     downloader.download_all_klines();
   }
   return 0;
