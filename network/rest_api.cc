@@ -70,7 +70,7 @@ RestResult RestClient::perform_request(const std::string& url,
   long http_code = 0;
   curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code >= 400) {
-    return std::make_unique<HttpError>(http_code);
+    return std::make_unique<HttpError>(http_code, response);
   }
 
   return response;

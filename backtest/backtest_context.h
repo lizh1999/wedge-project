@@ -18,8 +18,8 @@ class BacktestContext {
   void run(std::unique_ptr<IDataLoader> data_loader);
   std::unique_ptr<IBroker> broker();
 
-  bool execute_buy_order(double quanity, double price);
-  bool execute_sell_order(double quanity, double price);
+  bool execute_buy_order(double quantity, double price);
+  bool execute_sell_order(double quantity, double price);
 
   void set_strategy(std::unique_ptr<IStrategy> strategy) {
     strategy_ = std::move(strategy);

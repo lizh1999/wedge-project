@@ -33,7 +33,7 @@ bool HttpHeaders::add_header(const std::string& header) {
 }
 
 std::string HttpError::message() const {
-  return format("HTTP error code: {}", code_);
+  return format("HTTP error code: {} payload: {}", code_, payload_);
 }
 
 }  // namespace wedge

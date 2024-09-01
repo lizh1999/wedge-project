@@ -5,21 +5,21 @@ namespace wedge {
 
 class MarketSellOrder : public IOrder {
  public:
-  explicit MarketSellOrder(double quanity) : quanity_(quanity) {}
+  explicit MarketSellOrder(double quantity) : quantity_(quantity) {}
 
   bool update(BacktestContext& context, const Candle& candle) override;
 
  private:
-  double quanity_;
+  double quantity_;
 };
 
-std::unique_ptr<IOrder> market_sell_order(double quanity) {
-  return std::make_unique<MarketSellOrder>(quanity);
+std::unique_ptr<IOrder> market_sell_order(double quantity) {
+  return std::make_unique<MarketSellOrder>(quantity);
 }
 
 bool MarketSellOrder::update(BacktestContext& context, const Candle& candle) {
   double market_price = candle.close_price;
-  return context.execute_sell_order(quanity_, market_price);
+  return context.execute_sell_order(quantity_, market_price);
 }
 
 }  // namespace wedge

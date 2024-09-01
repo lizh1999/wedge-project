@@ -9,10 +9,10 @@ class BacktestBroker : public IBroker {
  public:
   explicit BacktestBroker(BacktestContext* context) : context_(context) {}
 
-  OrderIndex limit_buy_order(double quanity, double price) override;
-  OrderIndex limit_sell_order(double quanity, double price) override;
-  OrderIndex market_buy_order(double quanity) override;
-  OrderIndex market_sell_order(double quanity) override;
+  OrderIndex limit_buy_order(double quantity, double price) override;
+  OrderIndex limit_sell_order(double quantity, double price) override;
+  OrderIndex market_buy_order(double quantity) override;
+  OrderIndex market_sell_order(double quantity) override;
   void cancel(OrderIndex order_index) override;
   const Account& account() const override;
 

@@ -96,24 +96,24 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
   } while (iterator.has_value());
 }
 
-bool BacktestContext::execute_buy_order(double quanity, double price) {
-  double total_cost = quanity * price;
+bool BacktestContext::execute_buy_order(double quantity, double price) {
+  double total_cost = quantity * price;
   if (account_.balance() < total_cost) {
     return false;
   }
   account_.update_balance(-total_cost);
-  account_.update_position(quanity);
+  account_.update_position(quantity);
   println(stdout, "buy order cost {}", -total_cost);
   return true;
 }
 
-bool BacktestContext::execute_sell_order(double quanity, double price) {
-  if (account_.position() < quanity) {
+bool BacktestContext::execute_sell_order(double quantity, double price) {
+  if (account_.position() < quantity) {
     return false;
   }
-  double total_income = quanity * price;
+  double total_income = quantity * price;
   account_.update_balance(total_income);
-  account_.update_position(-quanity);
+  account_.update_position(-quantity);
   println(stdout, "sell order income {}", total_income);
   return true;
 }

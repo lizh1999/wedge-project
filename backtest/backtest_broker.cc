@@ -6,25 +6,25 @@
 
 namespace wedge {
 
-OrderIndex BacktestBroker::limit_buy_order(double quanity, double price) {
-  int index = context_->add_order(wedge::limit_buy_order(quanity, price));
-  println(stdout, "{}th limit buy order quanity {} price {}", index, quanity, price);
+OrderIndex BacktestBroker::limit_buy_order(double quantity, double price) {
+  int index = context_->add_order(wedge::limit_buy_order(quantity, price));
+  println(stdout, "{}th limit buy order quantity {} price {}", index, quantity, price);
   return OrderIndex(index);
 }
 
-OrderIndex BacktestBroker::limit_sell_order(double quanity, double price) {
-  int index = context_->add_order(wedge::limit_sell_order(quanity, price));
-  println(stdout, "{}th limit sell order quanity {} price {}", index, quanity, price);
+OrderIndex BacktestBroker::limit_sell_order(double quantity, double price) {
+  int index = context_->add_order(wedge::limit_sell_order(quantity, price));
+  println(stdout, "{}th limit sell order quantity {} price {}", index, quantity, price);
   return OrderIndex(index);
 }
 
-OrderIndex BacktestBroker::market_buy_order(double quanity) {
-  int index = context_->add_order(wedge::market_buy_order(quanity));
+OrderIndex BacktestBroker::market_buy_order(double quantity) {
+  int index = context_->add_order(wedge::market_buy_order(quantity));
   return OrderIndex(index);
 }
 
-OrderIndex BacktestBroker::market_sell_order(double quanity) {
-  int index = context_->add_order(wedge::market_sell_order(quanity));
+OrderIndex BacktestBroker::market_sell_order(double quantity) {
+  int index = context_->add_order(wedge::market_sell_order(quantity));
   return OrderIndex(index);
 }
 

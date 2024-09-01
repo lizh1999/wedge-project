@@ -6,4 +6,4 @@ build/
 dataset
 out.log
 
-.wedge/binance.json
+.wedge/binance_api_key.json

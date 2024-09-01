@@ -24,10 +24,10 @@ class OrderIndex {
 class IBroker {
  public:
   virtual ~IBroker() = default;
-  virtual OrderIndex limit_buy_order(double quanity, double price) = 0;
-  virtual OrderIndex limit_sell_order(double quanity, double price) = 0;
-  virtual OrderIndex market_buy_order(double quanity) = 0;
-  virtual OrderIndex market_sell_order(double quanity) = 0;
+  virtual OrderIndex limit_buy_order(double quantity, double price) = 0;
+  virtual OrderIndex limit_sell_order(double quantity, double price) = 0;
+  virtual OrderIndex market_buy_order(double quantity) = 0;
+  virtual OrderIndex market_sell_order(double quantity) = 0;
   virtual void cancel(OrderIndex index) = 0;
   virtual const Account& account() const = 0;
 };

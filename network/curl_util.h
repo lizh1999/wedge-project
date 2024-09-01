@@ -34,11 +34,13 @@ class HttpHeaders {
 
 class HttpError : public Error {
  public:
-  explicit HttpError(long code) : code_(code) {}
+  explicit HttpError(long code, const std::string& payload)
+      : code_(code), payload_(payload) {}
   std::string message() const override;
 
  private:
   long code_;
+  std::string payload_;
 };
 
 }  // namespace wedge

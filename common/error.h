@@ -24,7 +24,7 @@ class ErrorOr {
   bool has_value() const { return std::get_if<T>(&inner_); }
   T& value() { return std::get<T>(inner_); }
   Error& error() { return *std::get<ErrorPointer>(inner_); }
-  ErrorPointer task_error() {
+  ErrorPointer take_error() {
     return std::move(std::get<ErrorPointer>(inner_));
   }
 
