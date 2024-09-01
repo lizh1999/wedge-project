@@ -29,7 +29,7 @@ RestResult RestClient::perform_request(const std::string& url,
                                        const std::string& data,
                                        const HttpHeaders& headers) {
   if (!curl_) {
-    return std::make_unique<CurlError>(CURLE_FAILED_INIT);
+    return RestResult(std::make_unique<CurlError>(CURLE_FAILED_INIT));
   }
 
   std::string response;
@@ -64,13 +64,13 @@ RestResult RestClient::perform_request(const std::string& url,
 
   CURLcode res = curl_easy_perform(curl_);
   if (res != CURLE_OK) {
-    return std::make_unique<CurlError>(res);
+    return RestResult(std::make_unique<CurlError>(res));
   }
 
   long http_code = 0;
   curl_easy_getinfo(curl_, CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code >= 400) {
-    return std::make_unique<HttpError>(http_code, response);
+    return RestResult(std::make_unique<HttpError>(http_code, response));
   }
 
   return response;

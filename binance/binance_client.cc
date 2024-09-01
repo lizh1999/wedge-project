@@ -35,7 +35,7 @@ class URLBuilder {
 
   URLBuilder& set(std::string_view key, int64_t value) {
     char buffer[128];
-    sprintf(buffer, "%lld", value);
+    sprintf(buffer, "%lld", static_cast<long long>(value));
     return set(key, buffer);
   }
 

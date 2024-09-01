@@ -9,7 +9,7 @@ namespace wedge {
 ErrorOr<CurlGlobal> CurlGlobal::init() {
   CURLcode res = curl_global_init(CURL_GLOBAL_DEFAULT);
   if (res != CURLE_OK) {
-    return std::make_unique<CurlError>(res);
+    return ErrorOr<CurlGlobal>(std::make_unique<CurlError>(res));
   }
   return CurlGlobal();
 }
