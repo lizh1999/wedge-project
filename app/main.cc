@@ -36,6 +36,11 @@ struct BinanceApiKey {
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(BinanceApiKey, api_key, secret_key)
 };
 
+struct Proxy {
+  std::string proxy;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Proxy, proxy)
+};
+
 int main() {
   std::string config_path =
       format("{}/.wedge/binance_api_key.json", PROJECT_ROOT_DIR);
@@ -44,13 +49,23 @@ int main() {
     std::cerr << "File not found " << config_path << "\n";
     return EXIT_FAILURE;
   }
-  nlohmann::json j;
-  config_file >> j;
-  auto binance_api_key = j.get<BinanceApiKey>();
+  nlohmann::json config_j;
+  config_file >> config_j;
+  auto binance_api_key = config_j.get<BinanceApiKey>();
 
   BinanceClient client(binance_api_key.api_key, binance_api_key.secret_key);
 
-  client.set_proxy("127.0.0.1:7890");
+  std::string proxy_path = format("{}/.wedge/proxy.json", PROJECT_ROOT_DIR);
+  std::ifstream proxy_file(proxy_path);
+  if (proxy_file.is_open()) {
+    nlohmann::json proxy_j;
+    proxy_file >> proxy_j;
+    auto p = proxy_j.get<Proxy>();
+    if (!p.proxy.empty()) {
+      client.set_proxy(p.proxy);
+    }
+  }
+
   // test_buy(client);
   test_account(client);
   return 0;

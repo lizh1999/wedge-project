@@ -7,3 +7,4 @@ dataset
 out.log
 
 .wedge/binance_api_key.json
+.wedge/proxy.json

@@ -166,7 +166,7 @@ class BinanceDownloader {
   std::string build_values_sql(const json& kline) const {
     std::ostringstream oss;
     // clang-format off
-    oss << "(" 
+    oss << "("
         << kline[0].get<int64_t>() << ", "
         << kline[6].get<int64_t>() << ", "
         << kline[1].get<std::string>() << ", "
@@ -177,7 +177,7 @@ class BinanceDownloader {
         << kline[7].get<std::string>() << ", "
         << kline[8].get<int>() << ", "
         << kline[9].get<std::string>() << ", "
-        << kline[10].get<std::string>() 
+        << kline[10].get<std::string>()
         << ")";
     // clang-format on
     return oss.str();
@@ -209,27 +209,43 @@ struct Task {
 struct Config {
   std::vector<Task> tasks;
   std::string path;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path)
+};
+
+struct Proxy {
   std::string proxy;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path, proxy)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Proxy, proxy)
 };
 
 int main() {
   std::string config_path = format("{}/.wedge/dataset.json", PROJECT_ROOT_DIR);
   std::ifstream config_file(config_path);
   assert(config_file.is_open() && "Open config file error");
-  json j;
-  config_file >> j;
-  auto config = j.get<Config>();
+  json config_j;
+  config_file >> config_j;
+  auto config = config_j.get<Config>();
 
   auto curl_global = CurlGlobal::init();
   assert(curl_global.has_value() && "CURL Initialization Error");
+
+  std::string proxy = "";
+  std::string proxy_path = format("{}/.wedge/proxy.json", PROJECT_ROOT_DIR);
+  std::ifstream proxy_file(proxy_path);
+  if (proxy_file.is_open()) {
+    json proxy_j;
+    proxy_file >> proxy_j;
+    auto p = proxy_j.get<Proxy>();
+    if (!p.proxy.empty()) {
+      proxy = p.proxy;
+    }
+  }
 
   for (const auto& task : config.tasks) {
     auto filename = format("{}/{}/{}_{}_klines.db", PROJECT_ROOT_DIR,
                            config.path, task.symbol, task.interval);
     BinanceDownloader downloader(filename, task.symbol, task.interval);
-    if (!config.proxy.empty()) {
-      downloader.set_proxy(config.proxy);
+    if (!proxy.empty()) {
+      downloader.set_proxy(proxy);
     }
     downloader.download_all_klines();
   }
