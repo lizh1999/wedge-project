@@ -73,7 +73,7 @@ target("test_strategy", function ()
   set_kind("binary")
   add_files("app/test_strategy.cc")
   add_deps("backtest", "strategy")
-  add_packages("spdlog")
+  add_packages("nlohmann_json", "spdlog")
 end)
 
 target("main", function () 

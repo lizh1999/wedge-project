@@ -8,3 +8,4 @@ logs
 
 .wedge/binance_api_key.json
 .wedge/proxy.json
+.wedge/strategy.json
