@@ -1,6 +1,6 @@
 #include "backtest/backtest_broker.h"
 
-#include <cstdio>
+#include "spdlog/spdlog.h"
 
 #include "common/format.h"
 
@@ -8,13 +8,13 @@ namespace wedge {
 
 OrderIndex BacktestBroker::limit_buy_order(double quantity, double price) {
   int index = context_->add_order(wedge::limit_buy_order(quantity, price));
-  println(stdout, "{}th limit buy order quantity {} price {}", index, quantity, price);
+  context_->logger_->trace("{}th LBO quantity {} price {}", index, quantity, price);
   return OrderIndex(index);
 }
 
 OrderIndex BacktestBroker::limit_sell_order(double quantity, double price) {
   int index = context_->add_order(wedge::limit_sell_order(quantity, price));
-  println(stdout, "{}th limit sell order quantity {} price {}", index, quantity, price);
+  context_->logger_->trace("{}th LSO quantity {} price {}", index, quantity, price);
   return OrderIndex(index);
 }
 
@@ -30,7 +30,7 @@ OrderIndex BacktestBroker::market_sell_order(double quantity) {
 
 void BacktestBroker::cancel(OrderIndex order_index) {
   context_->cancel(order_index.index());
-  println(stdout, "cancel {}th order", order_index.index());
+  context_->logger_->trace("cacel {}th order", order_index.index());
 }
 
 const Account& BacktestBroker::account() const { return context_->account(); }

@@ -1,5 +1,7 @@
 #include "backtest/backtest_context.h"
 
+#include <fmt/chrono.h>
+
 #include <cassert>
 #include <cstdio>
 
@@ -18,7 +20,16 @@ int BacktestContext::add_order(std::unique_ptr<IOrder> order) {
   return index;
 }
 
+static std::string convert_unix_timestamp_ms(int64_t timestamp_ms) {
+  std::chrono::milliseconds ms(timestamp_ms);
+  std::chrono::seconds s = std::chrono::duration_cast<std::chrono::seconds>(ms);
+  std::time_t time_t_value = s.count();
+  std::tm* tm = std::localtime(&time_t_value);
+  return fmt::format("{:%Y-%m-%d %H:%M:%S}", *tm);
+}
+
 void BacktestContext::update_orders(const Candle& candle) {
+  bool should_log = false;
   auto iterator = orders_.begin();
   int last_index = last_order_index_;
   while (iterator != orders_.end() && iterator->first < last_index) {
@@ -29,8 +40,17 @@ void BacktestContext::update_orders(const Candle& candle) {
     } else {
       strategy_->on_order_filled(order_index);
       iterator = orders_.erase(iterator);
+      should_log = true;
     }
   }
+  if (!should_log)
+    return;
+  logger_->info(
+      "{} value {} high {} low {} volume {} price {} balance {} position {}",
+      convert_unix_timestamp_ms(candle.close_time),
+      account_.balance() + account_.position() * candle.close_price,
+      candle.high_price, candle.low_price, candle.volume, candle.close_price,
+      account_.balance(), account_.position());
 }
 
 static Candle merge(const Candle& previous, const Candle& current) {
@@ -88,10 +108,6 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
       } else {
         duration = strategy_->update(*candle);
       }
-      println(stdout, "balance {} position {} value {} price {}",
-              account_.balance(), account_.position(),
-              account_.balance() + account_.position() * candle->close_price,
-              candle->close_price);
     }
   } while (iterator.has_value());
 }
@@ -102,8 +118,8 @@ bool BacktestContext::execute_buy_order(double quantity, double price) {
     return false;
   }
   account_.update_balance(-total_cost);
-  account_.update_position(quantity);
-  println(stdout, "buy order cost {}", -total_cost);
+  account_.update_position(quantity * (1 - commission_));
+  logger_->info("buy order cost {} with price {}", -total_cost, price);
   return true;
 }
 
@@ -112,9 +128,9 @@ bool BacktestContext::execute_sell_order(double quantity, double price) {
     return false;
   }
   double total_income = quantity * price;
-  account_.update_balance(total_income);
+  account_.update_balance(total_income * (1 - commission_));
   account_.update_position(-quantity);
-  println(stdout, "sell order income {}", total_income);
+  logger_->info("sell order income {} with price {}", total_income, price);
   return true;
 }
 

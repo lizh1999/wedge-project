@@ -20,7 +20,7 @@ std::unique_ptr<IOrder> limit_sell_order(double quantity, double price) {
 }
 
 bool LimitSellOrder::update(BacktestContext& context, const Candle& candle) {
-  if (price_ < candle.high_price) {
+  if (price_ > candle.high_price) {
     return false;
   }
   return context.execute_sell_order(quantity_, price_);

@@ -4,7 +4,7 @@ build/
 
 .vscode
 dataset
-out.log
+logs
 
 .wedge/binance_api_key.json
 .wedge/proxy.json

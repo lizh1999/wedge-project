@@ -15,9 +15,10 @@ struct OrderInfo {
 
 class GridStrategy : public IStrategy {
  public:
-  GridStrategy(std::unique_ptr<IBroker> broker, int grid_count,
+  GridStrategy(std::unique_ptr<IBroker> broker,
+               std::shared_ptr<spdlog::logger> logger, int grid_count,
                double order_volume, double grid_spacing)
-      : IStrategy(std::move(broker)),
+      : IStrategy(std::move(broker), logger),
         baseline_price_(0),
         grid_count_(grid_count),
         order_volume_(order_volume),
@@ -37,6 +38,7 @@ class GridStrategy : public IStrategy {
       baseline_price_ = price;
       cancel_all_orders();
       place_initial_orders(candle.close_price);
+      logger_->warn("rebalance");
     }
     return 30min;
   }
@@ -108,9 +110,10 @@ class GridStrategy : public IStrategy {
 };
 
 std::unique_ptr<IStrategy> grid_strategy(std::unique_ptr<IBroker> broker,
+                                         std::shared_ptr<spdlog::logger> logger,
                                          int grid_count, double order_volume,
                                          double grid_spacing) {
-  return std::make_unique<GridStrategy>(std::move(broker), grid_count,
+  return std::make_unique<GridStrategy>(std::move(broker), logger, grid_count,
                                         order_volume, grid_spacing);
 }
 
