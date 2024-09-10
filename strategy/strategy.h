@@ -28,7 +28,6 @@ class IStrategy {
 
 std::unique_ptr<IStrategy> grid_strategy(std::unique_ptr<IBroker> broker,
                                          std::shared_ptr<spdlog::logger> logger,
-                                         int grid_count, double order_volume,
-                                         double grid_spacing);
+                                         int grid_count, double grid_spacing);
 
 }  // namespace wedge

@@ -17,11 +17,10 @@ class GridStrategy : public IStrategy {
  public:
   GridStrategy(std::unique_ptr<IBroker> broker,
                std::shared_ptr<spdlog::logger> logger, int grid_count,
-               double order_volume, double grid_spacing)
+               double grid_spacing)
       : IStrategy(std::move(broker), logger),
         baseline_price_(0),
         grid_count_(grid_count),
-        order_volume_(order_volume),
         grid_spacing_(grid_spacing) {}
 
   Minutes setup(const Candle& candle) override {
@@ -32,8 +31,9 @@ class GridStrategy : public IStrategy {
 
   Minutes update(const Candle& candle) override {
     double price = candle.close_price;
-    double lower_bound = baseline_price_ - grid_spacing_ * grid_count_;
-    double upper_bound = baseline_price_ + grid_spacing_ * grid_count_;
+    double bound = baseline_price_ * grid_spacing_ * grid_count_;
+    double lower_bound = baseline_price_ - bound;
+    double upper_bound = baseline_price_ + bound;
     if (price < lower_bound || upper_bound < price) {
       baseline_price_ = price;
       cancel_all_orders();
@@ -70,6 +70,7 @@ class GridStrategy : public IStrategy {
     } else {
       place_buy_order(current_price, target_position - position);
     }
+    order_volume_ = target_position / grid_count_;
   }
 
   void cancel_all_orders() {
@@ -96,8 +97,9 @@ class GridStrategy : public IStrategy {
   }
 
   void place_order(double filled_price) {
-    place_sell_order(filled_price + grid_spacing_, order_volume_);
-    place_buy_order(filled_price - grid_spacing_, order_volume_);
+    float spacing = grid_spacing_ * baseline_price_;
+    place_sell_order(filled_price + spacing, order_volume_);
+    place_buy_order(filled_price - spacing, order_volume_);
   }
 
   double baseline_price_;
@@ -111,10 +113,9 @@ class GridStrategy : public IStrategy {
 
 std::unique_ptr<IStrategy> grid_strategy(std::unique_ptr<IBroker> broker,
                                          std::shared_ptr<spdlog::logger> logger,
-                                         int grid_count, double order_volume,
-                                         double grid_spacing) {
+                                         int grid_count, double grid_spacing) {
   return std::make_unique<GridStrategy>(std::move(broker), logger, grid_count,
-                                        order_volume, grid_spacing);
+                                        grid_spacing);
 }
 
 }  // namespace wedge

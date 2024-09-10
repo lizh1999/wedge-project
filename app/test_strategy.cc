@@ -14,12 +14,10 @@ struct StrategyConfig {
   std::string start_time;
   std::string end_time;
   int grid_count;
-  double order_volume;
   double grid_spacing;
   std::string dataset;
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(StrategyConfig, balance, start_time, end_time,
-                                 grid_count, order_volume, grid_spacing,
-                                 dataset)
+                                 grid_count, grid_spacing, dataset)
 };
 
 int main() {
@@ -36,7 +34,7 @@ int main() {
   BacktestContext context(config.balance, 0, 0.001);
   auto broker = context.broker();
   auto strategy = grid_strategy(std::move(broker), logger, config.grid_count,
-                                config.order_volume, config.grid_spacing);
+                                config.grid_spacing);
   context.set_strategy(std::move(strategy));
 
   auto dataset_path = PROJECT_ROOT_DIR "/dataset/" + config.dataset;
