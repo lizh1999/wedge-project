@@ -46,11 +46,12 @@ void BacktestContext::update_orders(const Candle& candle) {
   if (!should_log)
     return;
   logger_->info(
-      "{} value {} high {} low {} volume {} price {} balance {} position {}",
+      "{} balance {:.4f} value {:.4f} price {:.4f} position {:.4f}e-5",
       convert_unix_timestamp_ms(candle.close_time),
+      account_.balance(),
       account_.balance() + account_.position() * candle.close_price,
-      candle.high_price, candle.low_price, candle.volume, candle.close_price,
-      account_.balance(), account_.position());
+      candle.close_price,
+      account_.position() * 1e5);
 }
 
 static Candle merge(const Candle& previous, const Candle& current) {
@@ -79,8 +80,8 @@ static Candle merge(const Candle& previous, const Candle& current) {
 }
 
 static Minutes duration_of(const Candle& candle) {
-  TimePoint open_time = SystemClock::from_time_t(candle.open_time);
-  TimePoint close_time = SystemClock::from_time_t(candle.close_time);
+  TimePoint open_time = SystemClock::from_time_t(candle.open_time / 1000);
+  TimePoint close_time = SystemClock::from_time_t(candle.close_time / 1000);
   return duration_cast<Minutes>(close_time - open_time);
 }
 
@@ -106,6 +107,7 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
         duration = strategy_->setup(*candle);
         has_setup = true;
       } else {
+        // logger_->info("update {} {} {}", convert_unix_timestamp_ms(candle->open_time), convert_unix_timestamp_ms(candle->close_time), duration_of(*candle));
         duration = strategy_->update(*candle);
       }
     }
@@ -119,7 +121,7 @@ bool BacktestContext::execute_buy_order(double quantity, double price) {
   }
   account_.update_balance(-total_cost);
   account_.update_position(quantity * (1 - commission_));
-  logger_->info("buy order cost {} with price {}", -total_cost, price);
+  logger_->info("buy order cost {:.4f} with price {:.4f}", -total_cost, price);
   return true;
 }
 
@@ -130,7 +132,7 @@ bool BacktestContext::execute_sell_order(double quantity, double price) {
   double total_income = quantity * price;
   account_.update_balance(total_income * (1 - commission_));
   account_.update_position(-quantity);
-  logger_->info("sell order income {} with price {}", total_income, price);
+  logger_->info("sell order income {:.4f} with price {:.4f}", total_income, price);
   return true;
 }
 
