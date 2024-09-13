@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/candle.h"
 #include "common/error.h"
 #include "network/rest_api.h"
 
@@ -28,6 +29,11 @@ class BinanceClient {
 
   void set_proxy(const std::string& proxy) { rest_client_.set_proxy(proxy); }
 
+  ErrorOr<std::vector<Candle>> kline(const std::string& symbol,
+                                     int64_t start_time, int64_t end_time,
+                                     const std::string& interval,
+                                     int limit = 1000);
+
   ErrorOr<int64_t> buy_limit_order(const std::string& symbol, float quantity,
                                    float price);
   ErrorOr<int64_t> sell_limit_order(const std::string& symbol, float quantity,
@@ -37,7 +43,6 @@ class BinanceClient {
   ErrorOr<std::vector<Balance>> get_account();
 
  private:
-
   RestClient rest_client_;
   std::string api_key_;
   std::string secret_key_;

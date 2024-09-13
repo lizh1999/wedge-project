@@ -49,10 +49,11 @@ end)
 target("binance", function () 
   set_kind("static")
   add_files(
-    "binance/binance_client.cc"
+    "binance/binance_client.cc",
+    "binance/binance_broker.cc"
   )
   add_deps("common", "network")
-  add_packages("nlohmann_json", "openssl")
+  add_packages("nlohmann_json", "openssl", "spdlog", { public = true })
 end)
 
 target("strategy", function () 
@@ -79,6 +80,6 @@ end)
 target("main", function () 
   set_kind("binary")
   add_files("app/main.cc")
-  add_deps("binance")
+  add_deps("binance", "strategy")
   add_packages("nlohmann_json")
 end)

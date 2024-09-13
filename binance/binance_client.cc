@@ -72,6 +72,44 @@ class URLBuilder {
 
 static const char* kBaseURL = "https://api.binance.com";
 
+ErrorOr<std::vector<Candle>> BinanceClient::kline(const std::string& symbol,
+                                                  int64_t start_time,
+                                                  int64_t end_time,
+                                                  const std::string& interval,
+                                                  int limit) {
+  URLBuilder builder;
+  // clang-format off
+  std::string url = builder
+    .set("interval", interval)
+    .set("startTime", start_time)
+    .set("endTime", end_time)
+    .set("limit", (int64_t)limit)
+    .url(kBaseURL, "/api/v3/klines");
+  // clang-format on
+  auto response = rest_client_.get(url);
+  if (!response.has_value()) {
+    return response.take_error();
+  }
+  auto json_data = nlohmann::json::parse(response.value());
+  
+  std::vector<Candle> result;
+  for (const auto &kline : json_data) {
+    Candle candle;
+    auto parse_float = [&](double *data, int index) {
+      std::string str = kline[index].get<std::string>();
+      sscanf(str.c_str(), "%lf", data);
+    };
+    candle.open_price = kline[0].get<int64_t>();
+    candle.close_price = kline[6].get<int64_t>();
+    parse_float(&candle.open_price, 1);
+    parse_float(&candle.high_price, 2);
+    parse_float(&candle.low_price, 3);
+    parse_float(&candle.close_price, 4);
+    result.push_back(candle);
+  }
+  return result;
+}
+
 ErrorOr<int64_t> BinanceClient::buy_limit_order(const std::string& symbol,
                                                 float quantity, float price) {
   URLBuilder builder;
@@ -96,9 +134,6 @@ ErrorOr<int64_t> BinanceClient::buy_limit_order(const std::string& symbol,
   if (!response.has_value()) {
     return response.take_error();
   }
-
-  fprintf(stderr, "%s\n", response.value().c_str());
-
   auto json_data = nlohmann::json::parse(response.value());
   return json_data["orderId"].get<int64_t>();
 }

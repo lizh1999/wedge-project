@@ -56,18 +56,15 @@ struct OrderInfo {
 
 class GridStrategy : public IStrategy {
  public:
-  GridStrategy(std::unique_ptr<IBroker> broker,
-               std::shared_ptr<spdlog::logger> logger, int grid_count,
-               double grid_spacing)
-      : IStrategy(std::move(broker), logger),
+  GridStrategy(IBroker* broker, std::shared_ptr<spdlog::logger> logger,
+               int grid_count, double grid_spacing)
+      : IStrategy(broker, logger),
         baseline_price_(0),
         grid_count_(grid_count),
         grid_spacing_(grid_spacing),
         index_(30) {}
 
-  Minutes setup(const Candle& candle) override {
-    return 1min;
-  }
+  Minutes setup(const Candle& candle) override { return 1min; }
 
   Minutes update(const Candle& candle) override {
     index_.update(candle);
@@ -135,7 +132,6 @@ class GridStrategy : public IStrategy {
       return;
     }
 
-
     if (target_position < position) {
       place_sell_order(current_price, position - target_position);
     } else {
@@ -182,10 +178,10 @@ class GridStrategy : public IStrategy {
   RelativeStrengthIndex index_;
 };
 
-std::unique_ptr<IStrategy> grid_strategy(std::unique_ptr<IBroker> broker,
+std::unique_ptr<IStrategy> grid_strategy(IBroker* broker,
                                          std::shared_ptr<spdlog::logger> logger,
                                          int grid_count, double grid_spacing) {
-  return std::make_unique<GridStrategy>(std::move(broker), logger, grid_count,
+  return std::make_unique<GridStrategy>(broker, logger, grid_count,
                                         grid_spacing);
 }
 

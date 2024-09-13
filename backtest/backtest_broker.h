@@ -14,7 +14,7 @@ class BacktestBroker : public IBroker {
   OrderIndex market_buy_order(double quantity) override;
   OrderIndex market_sell_order(double quantity) override;
   void cancel(OrderIndex order_index) override;
-  const Account& account() const override;
+  Account account() override;
 
  private:
   BacktestContext* context_;

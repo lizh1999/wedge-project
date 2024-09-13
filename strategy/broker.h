@@ -29,7 +29,7 @@ class IBroker {
   virtual OrderIndex market_buy_order(double quantity) = 0;
   virtual OrderIndex market_sell_order(double quantity) = 0;
   virtual void cancel(OrderIndex index) = 0;
-  virtual const Account& account() const = 0;
+  virtual Account account() = 0;
 };
 
 }  // namespace wedge
