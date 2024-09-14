@@ -104,7 +104,7 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
     }
     if (candle.has_value()) {
       if (!has_setup) {
-        duration = strategy_->setup(*candle);
+        duration = strategy_->setup();
         has_setup = true;
       } else {
         // logger_->info("update {} {} {}", convert_unix_timestamp_ms(candle->open_time), convert_unix_timestamp_ms(candle->close_time), duration_of(*candle));

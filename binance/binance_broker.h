@@ -32,12 +32,18 @@ class BinanceBroker : public IBroker {
 
   bool query(OrderIndex order);
 
+  Candle kline(int64_t start_time, int64_t end_time,
+               const std::string& interval);
+
  private:
   OrderIndex add_order(int64_t index) {
     OrderIndex result{last_order_index_++};
     map_.emplace(result, index);
     return result;
   }
+
+  template <class Ret, class Func>
+  Ret run(const char *name, Func &&func);
 
   int last_order_index_;
   std::string symbol_;

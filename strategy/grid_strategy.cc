@@ -64,7 +64,7 @@ class GridStrategy : public IStrategy {
         grid_spacing_(grid_spacing),
         index_(30) {}
 
-  Minutes setup(const Candle& candle) override { return 1min; }
+  Minutes setup() override { return 1min; }
 
   Minutes update(const Candle& candle) override {
     index_.update(candle);

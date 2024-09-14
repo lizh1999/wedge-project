@@ -22,6 +22,19 @@ struct Balance {
   double free;
 };
 
+class BinanceAccount {
+ public:
+  void set(const std::string& asset, double free) { map_.emplace(asset, free); }
+
+  double get(const std::string& asset) {
+    auto iter = map_.find(asset);
+    return iter->second;
+  }
+
+ private:
+  std::unordered_map<std::string, double> map_;
+};
+
 class BinanceClient {
  public:
   BinanceClient(std::string api_key, std::string secret_key)
@@ -40,7 +53,7 @@ class BinanceClient {
                                     float price);
   ErrorOr<OrderState> query_order(const std::string& symbol, int64_t order_id);
   ErrorOr<bool> cancel_order(const std::string& symbol, int64_t order_id);
-  ErrorOr<std::vector<Balance>> get_account();
+  ErrorOr<BinanceAccount> get_account();
 
  private:
   RestClient rest_client_;

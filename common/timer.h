@@ -34,9 +34,9 @@ class Timer {
     queue_.emplace(Task{time_point, std::move(callback)});
   }
 
-  void stop() {
-    stop_ = true;
-  }
+  void stop() { stop_ = true; }
+
+  TimePoint now() { return system_clock_.now(); }
 
  private:
   bool stop_;

@@ -53,25 +53,11 @@ void BinanceBroker::cancel(OrderIndex index) {
 }
 
 Account BinanceBroker::account() {
-  auto result = client_->get_account();
-  int count = 0;
-  while (!result.has_value()) {
-    logger_->warn("get account error {}", result.error().message());
-    std::this_thread::sleep_for(1s);
-    result = client_->get_account();
-    if (++count == 3)
-      std::abort();
-  }
-
-  double usdt;
-  double target;
-  for (auto& balance : result.value()) {
-    if (balance.asset == "USDT") {
-      usdt = balance.free;
-    } else if (balance.asset == symbol_) {
-      target = balance.free;
-    }
-  }
+  auto result = run<BinanceAccount>("get account", [&] {
+    return client_->get_account();
+  });
+  double usdt = result.get("USDT");
+  double target = result.get(symbol_);
   return Account(usdt, target);
 }
 
@@ -80,22 +66,37 @@ bool BinanceBroker::query(OrderIndex index) {
   if (iter == map_.end())
     std::abort();
 
-  auto result = client_->query_order(symbol_, iter->second);
+  auto result = run<OrderState>("cancel order", [&] {
+    return client_->query_order(symbol_, iter->second);
+  });
 
-  int count = 0;
-  while (!result.has_value()) {
-    logger_->warn("cancel order error {}", result.error().message());
-    std::this_thread::sleep_for(1s);
-    result = client_->query_order(symbol_, iter->second);
-    if (++count == 3)
-      std::abort();
-  }
-
-  if (result.value() != OrderState::kCanceled)
+  if (result != OrderState::kFilled)
     return false;
   
   map_.erase(iter);
   return true;
+}
+
+template <class Ret, class Func>
+Ret BinanceBroker::run(const char *name, Func &&func) {
+  const int kRedoNumber = 3;
+  for (int i = 0; i < kRedoNumber; i++) {
+    auto result = func();
+    if (result.has_value())
+      return result.value();
+    logger_->warn("{} error {}", name, result.error().message());
+    std::this_thread::sleep_for(1s);
+  }
+  std::abort();
+}
+
+Candle BinanceBroker::kline(int64_t start_time, int64_t end_time, const std::string &interval) {
+  auto result = run<std::vector<Candle>>("kline", [&] {
+    return client_->kline(symbol_, start_time, end_time, interval);
+  });
+  if (result.size() != 1) 
+    std::abort();
+  return result[0];
 }
 
 }  // namespace wedge

@@ -65,11 +65,21 @@ int main() {
   };
 
 
+  Minutes duration = strategy->setup();
   update_candle = [&] {
+    auto now = timer.now().time_since_epoch();
+    int64_t end_time = duration_cast<Milliseconds>(now).count();
+    int64_t start_time = duration_cast<Milliseconds>(now - duration).count();
+    char interval[16];
+    sprintf(interval, "%dm", duration.count());
+    auto candle = broker.kline(start_time, end_time, interval);
+    duration = strategy->update(candle);
+    timer.run_after(duration, update_candle);
   };
 
   timer.run_after(0s, update_orders);
-  
+  timer.run_after(0s, update_candle);  
 
+  timer.run();
   return 0;
 }

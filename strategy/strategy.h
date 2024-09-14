@@ -16,7 +16,7 @@ class IStrategy {
       : broker_(broker), logger_(logger) {}
 
   virtual ~IStrategy() = default;
-  virtual Minutes setup(const Candle& candle) = 0;
+  virtual Minutes setup() = 0;
   virtual Minutes update(const Candle& candle) = 0;
   virtual void on_order_filled(OrderIndex index) = 0;
 

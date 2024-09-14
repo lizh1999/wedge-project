@@ -235,7 +235,7 @@ ErrorOr<bool> BinanceClient::cancel_order(const std::string& symbol,
   return status == "CANCELED";
 }
 
-ErrorOr<std::vector<Balance>> BinanceClient::get_account() {
+ErrorOr<BinanceAccount> BinanceClient::get_account() {
   URLBuilder builder;
 
   // clang-format off
@@ -253,16 +253,17 @@ ErrorOr<std::vector<Balance>> BinanceClient::get_account() {
     return response.take_error();
   }
 
-  std::vector<Balance> balances;
+  BinanceAccount account;
   auto json_data = nlohmann::json::parse(response.value());
   for (const auto& item : json_data["balances"]) {
-    Balance balance;
-    balance.asset = item["asset"].get<std::string>();
+    std::string asset = item["asset"].get<std::string>();
     auto free = item["free"].get<std::string>();
-    sscanf(free.c_str(), "%lf", &balance.free);
-    balances.push_back(balance);
+
+    double free_value;
+    sscanf(free.c_str(), "%lf", &free_value);
+    account.set(asset, free_value);
   }
-  return balances;
+  return account;
 }
 
 }  // namespace wedge
