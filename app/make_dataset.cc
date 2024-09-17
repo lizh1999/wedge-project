@@ -241,7 +241,7 @@ int main() {
   }
 
   for (const auto& task : config.tasks) {
-    auto filename = format("{}/{}/{}_{}_klines.db", PROJECT_ROOT_DIR,
+    auto filename = fmt::format("{}/{}/{}_{}_klines.db", PROJECT_ROOT_DIR,
                            config.path, task.symbol, task.interval);
     BinanceDownloader downloader(filename, task.symbol, task.interval);
     if (!proxy.empty()) {
