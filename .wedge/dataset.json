@@ -2,12 +2,13 @@
   "tasks": [
     {
       "symbol": "BTCUSDT",
-      "interval": "1M"
+      "interval": "1h",
+      "filename": "BTCUSDT_1Hours_kline.db"
     },
     {
       "symbol": "ETHUSDT",
-      "interval": "1M"
+      "interval": "1h",
+      "filename": "ETHUSDT_1Hours_kline.db"
     }
-  ],
-  "path": "dataset"
+  ]
 }

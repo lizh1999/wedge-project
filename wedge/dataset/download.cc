@@ -35,8 +35,7 @@ asio::awaitable<void> download(ssl::context &ssl_context, SqlDataset &dataset,
     if (response.has_error()) {
       std::cerr << "Send error: " << response.error().message() << std::endl;
       static int count = 0;
-      if (++count >= 3) 
-        co_return;
+      if (++count >= 3) co_return;
       co_await client.connect();
       continue;
     }
@@ -67,13 +66,13 @@ asio::awaitable<void> download(ssl::context &ssl_context, SqlDataset &dataset,
 struct Task {
   std::string symbol;
   std::string interval;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Task, symbol, interval)
+  std::string filename;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Task, symbol, interval, filename)
 };
 
 struct Config {
   std::vector<Task> tasks;
-  std::string path;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks, path)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, tasks)
 };
 
 asio::awaitable<void> async_main() {
@@ -86,14 +85,9 @@ asio::awaitable<void> async_main() {
   config_file >> json_data;
   auto config = json_data.get<Config>();
 
-  std::cerr << config.path << std::endl;
-
   for (const auto &task : config.tasks) {
-    auto filename = fmt::format(PROJECT_ROOT_DIR "/{}/{}_{}_klines.db",
-                                config.path, task.symbol, task.interval);
-    std::cerr << filename << std::endl;
-    SqlDataset dataset(filename);
-
+    auto path = fmt::format(PROJECT_ROOT_DIR "/dataset/{}", task.filename);
+    SqlDataset dataset(path);
     co_await download(ssl_context, dataset, task.symbol,
                       market::from_str(task.interval));
   }
@@ -105,9 +99,8 @@ int main() {
   asio::io_context io_context;
   asio::co_spawn(io_context, async_main(), [](std::exception_ptr ptr) {
     try {
-      if (ptr)
-        std::rethrow_exception(ptr);
-    } catch(std::exception &e) {
+      if (ptr) std::rethrow_exception(ptr);
+    } catch (std::exception &e) {
       std::cerr << e.what() << std::endl;
     }
   });
