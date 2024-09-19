@@ -1,7 +1,4 @@
-#include "backtest/backtest_broker.h"
-
-#include "common/format.h"
-#include "spdlog/spdlog.h"
+#include "wedge/backtest/backtest_broker.h"
 
 namespace wedge {
 

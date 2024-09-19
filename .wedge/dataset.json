@@ -2,11 +2,11 @@
   "tasks": [
     {
       "symbol": "BTCUSDT",
-      "interval": "1m"
+      "interval": "1M"
     },
     {
       "symbol": "ETHUSDT",
-      "interval": "1m"
+      "interval": "1M"
     }
   ],
   "path": "dataset"

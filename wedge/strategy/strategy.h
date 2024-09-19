@@ -4,9 +4,9 @@
 
 #include <memory>
 
-#include "common/candle.h"
-#include "common/chrono.h"
-#include "strategy/broker.h"
+#include "wedge/common/candle.h"
+#include "wedge/common/chrono.h"
+#include "wedge/strategy/broker.h"
 
 namespace wedge {
 

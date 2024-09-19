@@ -1,12 +1,13 @@
-#include "backtest/backtest_context.h"
+#include "wedge/backtest/backtest_context.h"
 
 #include <fmt/chrono.h>
 
 #include <cassert>
 #include <cstdio>
+#include <optional>
 
-#include "backtest/backtest_broker.h"
-#include "common/format.h"
+#include "wedge/backtest/backtest_broker.h"
+#include "wedge/dataset/sql_iterator.h"
 
 namespace wedge {
 
@@ -43,15 +44,12 @@ void BacktestContext::update_orders(const Candle& candle) {
       should_log = true;
     }
   }
-  if (!should_log)
-    return;
+  if (!should_log) return;
   logger_->info(
       "{} balance {:.4f} value {:.4f} price {:.4f} position {:.4f}e-5",
-      convert_unix_timestamp_ms(candle.close_time),
-      account_.balance(),
+      convert_unix_timestamp_ms(candle.close_time), account_.balance(),
       account_.balance() + account_.position() * candle.close_price,
-      candle.close_price,
-      account_.position() * 1e5);
+      candle.close_price, account_.position() * 1e5);
 }
 
 static Candle merge(const Candle& previous, const Candle& current) {
@@ -85,13 +83,13 @@ static Minutes duration_of(const Candle& candle) {
   return duration_cast<Minutes>(close_time - open_time);
 }
 
-void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
+void BacktestContext::run(SqlIterator data_loader) {
   Minutes duration = 1min;
   bool has_setup = false;
-  optional<Candle> iterator;
+  std::optional<Candle> iterator;
   do {
-    optional<Candle> candle;
-    while ((iterator = data_loader->next())) {
+    std::optional<Candle> candle;
+    while ((iterator = data_loader.next())) {
       if (!candle.has_value()) {
         candle = iterator;
       } else {
@@ -107,7 +105,6 @@ void BacktestContext::run(std::unique_ptr<IDataLoader> data_loader) {
         duration = strategy_->setup();
         has_setup = true;
       } else {
-        // logger_->info("update {} {} {}", convert_unix_timestamp_ms(candle->open_time), convert_unix_timestamp_ms(candle->close_time), duration_of(*candle));
         duration = strategy_->update(*candle);
       }
     }
@@ -132,7 +129,8 @@ bool BacktestContext::execute_sell_order(double quantity, double price) {
   double total_income = quantity * price;
   account_.update_balance(total_income * (1 - commission_));
   account_.update_position(-quantity);
-  logger_->info("sell order income {:.4f} with price {:.4f}", total_income, price);
+  logger_->info("sell order income {:.4f} with price {:.4f}", total_income,
+                price);
   return true;
 }
 

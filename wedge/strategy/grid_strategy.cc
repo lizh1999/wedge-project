@@ -2,10 +2,9 @@
 #include <cmath>
 #include <deque>
 #include <limits>
-#include <unordered_map>
+#include <optional>
 
-#include "common/optional.h"
-#include "strategy/strategy.h"
+#include "wedge/strategy/strategy.h"
 
 namespace wedge {
 
@@ -33,9 +32,9 @@ class RelativeStrengthIndex {
     }
   }
 
-  optional<double> value() {
+  std::optional<double> value() {
     if (period_ != gains_.size()) {
-      return nullopt;
+      return std::nullopt;
     }
     double rs = sum_gain_ / sum_loss_;
     return 100. - (100. / (1 + rs));
@@ -101,12 +100,12 @@ class GridStrategy : public IStrategy {
     double filled_price = std::numeric_limits<double>::quiet_NaN();
     if (buy_order_ && buy_order_->index == index) {
       filled_price = buy_order_->price;
-      buy_order_ = nullopt;
+      buy_order_ = std::nullopt;
       order_balance++;
     }
     if (sell_order_ && sell_order_->index == index) {
       filled_price = sell_order_->price;
-      sell_order_ = nullopt;
+      sell_order_ = std::nullopt;
       order_balance--;
     }
     logger_->info("order balance {}", order_balance);
@@ -142,11 +141,11 @@ class GridStrategy : public IStrategy {
   void cancel_all_orders() {
     if (buy_order_.has_value()) {
       broker_->cancel(buy_order_->index);
-      buy_order_ = nullopt;
+      buy_order_ = std::nullopt;
     }
     if (sell_order_.has_value()) {
       broker_->cancel(sell_order_->index);
-      sell_order_ = nullopt;
+      sell_order_ = std::nullopt;
     }
   }
 
@@ -173,8 +172,8 @@ class GridStrategy : public IStrategy {
   double order_volume_;
   double grid_spacing_;
 
-  optional<OrderInfo> buy_order_;
-  optional<OrderInfo> sell_order_;
+  std::optional<OrderInfo> buy_order_;
+  std::optional<OrderInfo> sell_order_;
   RelativeStrengthIndex index_;
 };
 

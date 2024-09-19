@@ -1,9 +1,13 @@
----
+# Use the Google style in this project.
 BasedOnStyle: Google
-AllowShortBlocksOnASingleLine: 'false'
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: 'false'
-DerivePointerAlignment: 'false'
-ExperimentalAutoDetectBinPacking: 'false'
-FixNamespaceComments: 'true'
-PointerAlignment: Left
+
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.h(pp)?>'
+    Priority: 1
+  - Regex: "^<.*"
+    Priority: 2
+  - Regex: '^"wedge.*'
+    Priority: 4
+  - Regex: '^".*'
+    Priority: 3

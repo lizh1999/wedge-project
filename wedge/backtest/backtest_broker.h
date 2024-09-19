@@ -1,7 +1,7 @@
 #pragma once
 
-#include "backtest/backtest_context.h"
-#include "strategy/broker.h"
+#include "wedge/backtest/backtest_context.h"
+#include "wedge/strategy/broker.h"
 
 namespace wedge {
 

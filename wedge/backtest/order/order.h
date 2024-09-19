@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "common/candle.h"
+#include "wedge/common/candle.h"
 
 namespace wedge {
 

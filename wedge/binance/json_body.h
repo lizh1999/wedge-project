@@ -1,84 +1,78 @@
 #pragma once
 
-#include <boost/json.hpp>
+#include <boost/asio.hpp>
+#include <boost/beast/http/message.hpp>
+#include <boost/optional.hpp>
+#include <boost/system.hpp>
+#include <nlohmann/json.hpp>
 
 namespace wedge {
 
-namespace json = boost::json;
+namespace asio = boost::asio;
+namespace beast = boost::beast;
+namespace http = beast::http;
+
+using json = nlohmann::json;
+using boost::system::error_code;
 
 struct json_body {
-  using value_type = json::value;
+  using value_type = json;
+
   struct writer {
-    using const_buffers_type = boost::asio::const_buffer;
+    using ConstBuffer = asio::const_buffer;
+    using GetResult = boost::optional<std::pair<ConstBuffer, bool>>;
+
     template <bool isRequest, class Fields>
     writer(boost::beast::http::header<isRequest, Fields> const&,
            value_type const& body) {
-      // The serializer holds a pointer to the value, so all we need to do is to
-      // reset it.
-      serializer.reset(&body);
+      serialized_body = body.dump();
     }
 
-    void init(boost::system::error_code& ec) {
-      // The serializer always works, so no error can occur here.
-      ec = {};
-    }
+    void init(error_code& ec) { ec = {}; }
 
-    boost::optional<std::pair<const_buffers_type, bool>> get(
-        boost::system::error_code& ec) {
+    GetResult get(error_code& ec) {
       ec = {};
-      // We serialize as much as we can with the buffer. Often that'll suffice
-      const auto len = serializer.read(buffer, sizeof(buffer));
-      return std::make_pair(boost::asio::const_buffer(len.data(), len.size()),
-                            !serializer.done());
+      return std::make_pair(
+          ConstBuffer(serialized_body.data(), serialized_body.size()), false);
     }
 
    private:
-    json::serializer serializer;
-    // half of the probable networking buffer, let's leave some space for
-    // headers
-    char buffer[32768];
+    std::string serialized_body;
   };
 
   struct reader {
     template <bool isRequest, class Fields>
-    reader(boost::beast::http::header<isRequest, Fields>& h, value_type& body)
-        : body(body) {}
+    reader(http::header<isRequest, Fields>&, value_type& body) : body(body) {}
+
     void init(boost::optional<std::uint64_t> const& content_length,
-              boost::system::error_code& ec) {
-      // If we know the content-length, we can allocate a monotonic resource to
-      // increase the parsing speed. We're using it rather then a
-      // static_resource, so a consumer can modify the resulting value. It is
-      // also only assumption that the parsed json will be smaller than the
-      // serialize one, it might not always be the case.
-      if (content_length)
-        parser.reset(json::make_shared_resource<json::monotonic_resource>(
-            *content_length));
+              error_code& ec) {
       ec = {};
+      if (content_length) {
+        buffer.reserve(*content_length);
+      }
     }
 
     template <class ConstBufferSequence>
-    std::size_t put(ConstBufferSequence const& buffers,
-                    boost::system::error_code& ec) {
+    std::size_t put(ConstBufferSequence const& buffers, error_code& ec) {
       ec = {};
-      // The parser just uses the `ec` to indicate errors, so we don't need to
-      // do anything.
-      return parser.write_some(static_cast<const char*>(buffers.data()),
-                               buffers.size(), ec);
+      buffer.append(static_cast<const char*>(buffers.data()), buffers.size());
+      return buffers.size();
     }
 
-    void finish(boost::system::error_code& ec) {
+    void finish(error_code& ec) {
       ec = {};
-      // We check manually if the json is complete.
-      if (parser.done())
-        body = parser.release();
-      else
-        ec = boost::json::error::incomplete;
+      auto parsed_json = json::parse(buffer, nullptr, false);
+      if (parsed_json.is_discarded()) {
+        ec = make_error_code(boost::system::errc::invalid_argument);
+      } else {
+        body = std::move(parsed_json);
+      }
     }
 
    private:
-    json::stream_parser parser;
+    std::string buffer;
     value_type& body;
   };
 };
 
-}
+}  // namespace wedge

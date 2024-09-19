@@ -1,7 +1,7 @@
 #include "wedge/binance/binance_http_client.h"
 
 #include <boost/beast.hpp>
-
+#include<iostream>
 namespace wedge {
 
 const char* kBaseURL = "api.binance.com";
@@ -128,7 +128,7 @@ asio::awaitable<result<BinanceResponce>> BinanceHttpClient::send(
   error_code ec;
   std::tie(ec, std::ignore) =
       co_await http::async_write(stream_, http_request, asio::as_tuple);
-
+  std::cerr << "async write" << std::endl;
   if (ec) {
     co_return ec;
   }
@@ -142,7 +142,7 @@ asio::awaitable<result<BinanceResponce>> BinanceHttpClient::send(
   // Receive the HTTP response
   std::tie(ec, std::ignore) =
       co_await http::async_read(stream_, buffer, response, asio::as_tuple);
-
+  std::cerr << "async read" << std::endl;
   if (ec) {
     co_return ec;
   }

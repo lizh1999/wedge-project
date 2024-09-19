@@ -1,15 +1,14 @@
 #pragma once
 
-#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
 #include <map>
 #include <memory>
 
-#include "backtest/data_loader.h"
-#include "backtest/order/order.h"
-#include "strategy/broker.h"
-#include "strategy/strategy.h"
+#include "wedge/backtest/order/order.h"
+#include "wedge/dataset/sql_iterator.h"
+#include "wedge/strategy/broker.h"
+#include "wedge/strategy/strategy.h"
 
 namespace wedge {
 
@@ -18,7 +17,7 @@ class BacktestContext {
   BacktestContext(double balance, double position, double commission = 0)
       : account_(balance, position), commission_(commission) {}
 
-  void run(std::unique_ptr<IDataLoader> data_loader);
+  void run(SqlIterator data_loader);
   std::unique_ptr<IBroker> broker();
 
   bool execute_buy_order(double quantity, double price);

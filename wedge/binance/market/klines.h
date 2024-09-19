@@ -22,6 +22,15 @@ enum class KlineInterval {
   kMonths1,
 };
 
+inline KlineInterval from_str(std::string_view str) {
+  const char* interval_str[] = {"1m", "3m", "5m", "15m",  "30m", "1h",
+                                "2h", "4h", "6h", "8h",   "12h", "1d",
+                                "3d", "1w", "1M", nullptr};
+  int index = 0;
+  while (interval_str[index] && str != interval_str[index]) index++;
+  return static_cast<KlineInterval>(index);
+}
+
 class Klines : public RequestBuilder<Klines> {
  public:
   Klines(std::string_view symbol, KlineInterval interval)
