@@ -8,6 +8,4 @@ logs
 
 compile_commands.json
 
-.wedge/binance_api_key.json
-.wedge/proxy.json
-.wedge/strategy.json
+.wedge

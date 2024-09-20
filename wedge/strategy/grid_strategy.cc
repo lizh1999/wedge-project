@@ -63,23 +63,23 @@ class GridStrategy : public IStrategy {
         grid_spacing_(grid_spacing),
         index_(30) {}
 
-  Minutes setup() override { return 1min; }
-
-  Minutes update(const Candle& candle) override {
+  void update(const Candle& candle) override {
     index_.update(candle);
     auto value = index_.value();
 
-    if (value && *value < 20) {
+    if (!value) {
+      return;
+    }
+    if (*value < 20) {
       cancel_all_orders();
-      return 30min;
+      return;
     }
 
-    // logger_->info("rsi {}", *value);
     if (!sell_order_ && !buy_order_) {
       baseline_price_ = candle.close_price;
       logger_->warn("place initial order");
       place_initial_orders(candle.close_price);
-      return 30min;
+      return;
     }
 
     double price = candle.close_price;
@@ -92,7 +92,7 @@ class GridStrategy : public IStrategy {
       place_initial_orders(candle.close_price);
       logger_->warn("rebalance");
     }
-    return 30min;
+    return;
   }
 
   int order_balance = 0;

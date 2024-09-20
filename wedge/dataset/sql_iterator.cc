@@ -32,7 +32,6 @@ SqlIterator::SqlIterator(sqlite3* db, std::optional<std::string> start_time,
       FROM klines
       WHERE open_time >= ? AND open_time <= ?
       ORDER BY open_time ASC)";
-
   sqlite3_prepare_v2(db, sql, -1, &stmt_, nullptr);
   sqlite3_bind_int64(stmt_, 1, start_timestamp);
   sqlite3_bind_int64(stmt_, 2, end_timestamp);

@@ -77,38 +77,11 @@ static Candle merge(const Candle& previous, const Candle& current) {
   return result;
 }
 
-static Minutes duration_of(const Candle& candle) {
-  TimePoint open_time = SystemClock::from_time_t(candle.open_time / 1000);
-  TimePoint close_time = SystemClock::from_time_t(candle.close_time / 1000);
-  return duration_cast<Minutes>(close_time - open_time);
-}
-
 void BacktestContext::run(SqlIterator data_loader) {
-  Minutes duration = 1min;
-  bool has_setup = false;
-  std::optional<Candle> iterator;
-  do {
-    std::optional<Candle> candle;
-    while ((iterator = data_loader.next())) {
-      if (!candle.has_value()) {
-        candle = iterator;
-      } else {
-        candle = merge(*candle, *iterator);
-      }
-      update_orders(*iterator);
-      if (duration <= duration_of(*candle)) {
-        break;
-      }
-    }
-    if (candle.has_value()) {
-      if (!has_setup) {
-        duration = strategy_->setup();
-        has_setup = true;
-      } else {
-        duration = strategy_->update(*candle);
-      }
-    }
-  } while (iterator.has_value());
+  while (auto iterator = data_loader.next()) {
+    update_orders(*iterator);
+    strategy_->update(*iterator);
+  }
 }
 
 bool BacktestContext::execute_buy_order(double quantity, double price) {

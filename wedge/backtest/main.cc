@@ -45,7 +45,7 @@ int main() {
 
   context.set_logger(logger);
 
-  context.run(dataset.iterator());
+  context.run(dataset.iterator(config.start_time, config.end_time));
 
   auto& account = context.account();
   return 0;
