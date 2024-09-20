@@ -164,4 +164,77 @@ asio::awaitable<error_code> BinanceHttpClient::shutdown() {
   co_return ec;
 }
 
+error_code BinanceHttpClient::connect_sync() {
+  asio::ip::tcp::resolver resolver(
+      beast::get_lowest_layer(stream_).get_executor());
+  auto results = resolver.resolve(kBaseURL, kHttpsPort);
+
+  // Set SNI Hostname
+  if (!SSL_set_tlsext_host_name(stream_.native_handle(), kBaseURL)) {
+    return error_code(static_cast<int>(::ERR_get_error()),
+                      asio::error::get_ssl_category());
+  }
+
+  error_code ec;
+
+  // Make the connection on the IP address we get from a lookup
+  beast::get_lowest_layer(stream_).connect(results, ec);
+
+  if (ec) {
+    return ec;
+  }
+
+  // Perform the SSL handshake
+  stream_.handshake(ssl::stream_base::client, ec);
+
+  return ec;
+}
+
+error_code BinanceHttpClient::shutdown_sync() {
+  error_code ec;
+  stream_.shutdown(ec);
+  if (ec == ssl::error::stream_truncated) {
+    ec = {};
+  }
+  return ec;
+}
+
+result<BinanceResponce> BinanceHttpClient::send_sync(const Request& request) {
+  URLBuilder url_builder;
+  for (auto& [key, value] : request.params) {
+    url_builder.set(key, value);
+  }
+  if (request.sign && request.credentials) {
+    url_builder.sign(request.credentials->secret_key);
+  }
+  std::string target = url_builder.url(request.path);
+
+  http::request<http::empty_body> http_request(request.method, target, 11);
+  http_request.set(http::field::host, kBaseURL);
+  http_request.set(http::field::user_agent, "wedge-agent");
+  if (request.credentials.has_value()) {
+    http_request.set("X-MBX-APIKEY", request.credentials->api_key);
+  }
+
+  error_code ec;
+
+  http::write(stream_, http_request, ec);
+
+  if (ec) {
+    return ec;
+  }
+
+  // This buffer is used for reading and must be persisted
+  beast::flat_buffer buffer;
+  BinanceResponce response;
+
+  http::read(stream_, buffer, response, ec);
+
+  if (ec) {
+    return ec;
+  }
+
+  return response;
+}
+
 }  // namespace wedge

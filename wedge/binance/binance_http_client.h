@@ -26,6 +26,10 @@ class BinanceHttpClient {
   asio::awaitable<error_code> shutdown();
   asio::awaitable<result<BinanceResponce>> send(const Request& request);
 
+  error_code connect_sync();
+  error_code shutdown_sync();
+  result<BinanceResponce> send_sync(const Request &request);
+
  private:
   ssl::stream<beast::tcp_stream> stream_;
 };
