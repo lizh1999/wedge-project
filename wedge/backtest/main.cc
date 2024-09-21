@@ -5,8 +5,8 @@
 #include <fstream>
 
 #include "wedge/backtest/backtest_context.h"
-#include "wedge/strategy/strategy.h"
 #include "wedge/dataset/sql_dataset.h"
+#include "wedge/strategy/strategy.h"
 
 using namespace wedge;
 
@@ -34,14 +34,13 @@ int main() {
 
   BacktestContext context(config.balance, 0, 0.001);
   auto broker = context.broker();
-  auto strategy = grid_strategy(broker.get(), logger, config.grid_count,
-                                config.grid_spacing);
+  auto strategy = grid_strategy(config.grid_count, config.grid_spacing);
+  strategy->set_broker(broker.get());
+  strategy->set_logger(logger);
   context.set_strategy(std::move(strategy));
 
   auto dataset_path = PROJECT_ROOT_DIR "/dataset/" + config.dataset;
   SqlDataset dataset(dataset_path);
-  // auto loader =
-  //     sql_data_loader(dataset_path, config.start_time, config.end_time);
 
   context.set_logger(logger);
 

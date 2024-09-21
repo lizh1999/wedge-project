@@ -7,6 +7,10 @@ namespace wedge {
 const char* kBaseURL = "api.binance.com";
 const char* kHttpsPort = "443";
 
+BinanceHttpClient::BinanceHttpClient(asio::io_context& executor,
+                                     ssl::context& ssl_context)
+    : stream_(executor, ssl_context) {}
+
 BinanceHttpClient::BinanceHttpClient(asio::any_io_executor& executor,
                                      ssl::context& ssl_context)
     : stream_(executor, ssl_context) {}

@@ -21,6 +21,7 @@ using BinanceResponce = http::response<json_body>;
 
 class BinanceHttpClient {
  public:
+  BinanceHttpClient(asio::io_context& executor, ssl::context& ssl_context);
   BinanceHttpClient(asio::any_io_executor& executor, ssl::context& ssl_context);
   asio::awaitable<error_code> connect();
   asio::awaitable<error_code> shutdown();

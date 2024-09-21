@@ -55,10 +55,8 @@ struct OrderInfo {
 
 class GridStrategy : public IStrategy {
  public:
-  GridStrategy(IBroker* broker, std::shared_ptr<spdlog::logger> logger,
-               int grid_count, double grid_spacing)
-      : IStrategy(broker, logger),
-        baseline_price_(0),
+  GridStrategy(int grid_count, double grid_spacing)
+      : baseline_price_(0),
         grid_count_(grid_count),
         grid_spacing_(grid_spacing),
         index_(30) {}
@@ -177,11 +175,8 @@ class GridStrategy : public IStrategy {
   RelativeStrengthIndex index_;
 };
 
-std::unique_ptr<IStrategy> grid_strategy(IBroker* broker,
-                                         std::shared_ptr<spdlog::logger> logger,
-                                         int grid_count, double grid_spacing) {
-  return std::make_unique<GridStrategy>(broker, logger, grid_count,
-                                        grid_spacing);
+std::unique_ptr<IStrategy> grid_strategy(int grid_count, double grid_spacing) {
+  return std::make_unique<GridStrategy>(grid_count, grid_spacing);
 }
 
 }  // namespace wedge
