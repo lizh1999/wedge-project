@@ -35,6 +35,7 @@ void TradeEngine::run() {
         duration_cast<Milliseconds>((now - 30min).time_since_epoch()).count();
     auto candles = broker_.get_klines("BTCUSDT", "30m", start_time, end_time);
     strategy_->update(candles.back());
+    logger_->flush();
   }
 }
 
