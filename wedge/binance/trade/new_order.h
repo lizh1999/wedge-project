@@ -1,7 +1,8 @@
 #pragma once
 
-#include "wedge/binance/http.h"
+#include <iostream>
 
+#include "wedge/binance/http.h"
 namespace wedge::trade {
 
 enum class Side {
@@ -25,7 +26,7 @@ class NewOrder : public RequestBuilder<NewOrder> {
  public:
   NewOrder(std::string_view symbol, Side side, std::string_view type)
       : RequestBuilder(http::verb::post, "/api/v3/order", true) {
-    const char* side_str[] = {"BUY, SELL"};
+    static const char* side_str[] = {"BUY", "SELL"};
     add_param("symbol", symbol);
     add_param("side", side_str[static_cast<int>(side)]);
     add_param("type", type);

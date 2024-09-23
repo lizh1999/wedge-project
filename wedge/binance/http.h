@@ -3,14 +3,11 @@
 #include <boost/beast/http/verb.hpp>
 #include <boost/optional.hpp>
 
+#include "wedge/binance/credentials.h"
+
 namespace wedge {
 
 namespace http = boost::beast::http;
-
-struct Credentials {
-  std::string api_key;
-  std::string secret_key;
-};
 
 struct Request {
   http::verb method;
