@@ -4,6 +4,7 @@
 
 #include <ctime>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 
 namespace wedge {

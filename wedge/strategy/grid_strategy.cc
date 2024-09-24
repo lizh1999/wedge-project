@@ -66,9 +66,14 @@ class GridStrategy : public IStrategy {
     auto value = index_.value();
 
     if (!value) {
+      logger_->trace("update end because sri value is none");
       return;
     }
+
+    logger_->trace("current sir value is {}", *value);
+
     if (*value < 20) {
+      logger_->trace("cancel all orders because sri is {} which is to low", *value);
       cancel_all_orders();
       return;
     }

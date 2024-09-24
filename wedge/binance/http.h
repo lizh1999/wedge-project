@@ -58,7 +58,7 @@ class RequestBuilder {
 
   Self& add_param(std::string_view key, int64_t value) {
     char buffer[128];
-    sprintf(buffer, "%lld", value);
+    sprintf(buffer, "%lld", (long long)value);
     return add_param(key, buffer);
   }
 
