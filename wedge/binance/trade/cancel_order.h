@@ -23,7 +23,7 @@ class CancelOrder : public RequestBuilder<CancelOrder> {
     return add_param("newClientOrderId", value);
   }
 
-  CancelOrder& recv_window(uint64_t value) { add_param("recvWindow", value); }
+  CancelOrder& recv_window(uint64_t value) { return add_param("recvWindow", value); }
 };
 
 }  // namespace wedge::trade

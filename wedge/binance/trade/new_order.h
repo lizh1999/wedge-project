@@ -64,7 +64,7 @@ class NewOrder : public RequestBuilder<NewOrder> {
     return add_param("newOrderRespType", value_str[static_cast<int>(value)]);
   }
 
-  NewOrder& recv_window(uint64_t value) { add_param("recvWindow", value); }
+  NewOrder& recv_window(uint64_t value) { return add_param("recvWindow", value); }
 };
 
 }  // namespace wedge::trade
