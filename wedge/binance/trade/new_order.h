@@ -47,7 +47,9 @@ class NewOrder : public RequestBuilder<NewOrder> {
     return add_param("quoteOrderQty", value);
   }
 
-  NewOrder& price(double value) { return add_param("price", value); }
+  NewOrder& price(double value) {
+    return add_param("price", std::round(value * 1e2) / 1e2);
+  }
 
   NewOrder& new_client_order_id(std::string_view value) {
     return add_param("newClientOrderId", value);
