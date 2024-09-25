@@ -2,6 +2,8 @@
 
 #include <boost/beast.hpp>
 
+#include <cinttypes>
+
 namespace wedge {
 
 const char* kBaseURL = "api.binance.com";
@@ -82,7 +84,7 @@ class URLBuilder {
  private:
   URLBuilder& set(std::string_view key, int64_t value) {
     char buffer[128];
-    sprintf(buffer, "%lld", (long long) value);
+    sprintf(buffer, "%" PRId64, value);
     return set(key, buffer);
   }
 

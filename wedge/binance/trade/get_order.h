@@ -19,7 +19,9 @@ class GetOrder : public RequestBuilder<GetOrder> {
     return add_param("origClientOrderId", value);
   }
 
-  GetOrder& recv_window(uint64_t value) { return add_param("recvWindow", value); }
+  GetOrder& recv_window(uint64_t value) {
+    return add_param("recvWindow", value);
+  }
 };
 
 }  // namespace wedge::trade

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -16,6 +17,7 @@ class IStrategy {
   virtual ~IStrategy() = default;
   virtual void update(const Candle& candle) = 0;
   virtual void on_order_filled(OrderIndex index) = 0;
+  virtual void from_json(const nlohmann::json& josn) = 0;
   void set_broker(IBroker* broker) { broker_ = broker; }
   void set_logger(LoggerPtr logger) { logger_ = logger; }
 
@@ -24,6 +26,6 @@ class IStrategy {
   LoggerPtr logger_;
 };
 
-std::unique_ptr<IStrategy> grid_strategy(int grid_count, double grid_spacing);
+std::unique_ptr<IStrategy> grid_strategy();
 
 }  // namespace wedge

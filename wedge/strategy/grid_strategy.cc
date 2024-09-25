@@ -10,11 +10,16 @@ namespace wedge {
 
 class RelativeStrengthIndex {
  public:
-  RelativeStrengthIndex(int period)
+  RelativeStrengthIndex(int period = 20)
       : period_(period), sum_loss_(0), sum_gain_(0) {}
 
-  void update(const Candle& candle) {
-    double change = candle.close_price - candle.open_price;
+  void update(double price) {
+    if (!last_price_) {
+      last_price_ = price;
+      return;
+    }
+    double change = price - *last_price_;
+    last_price_ = price;
     double gain = (change > 0) ? change : 0;
     double loss = (change < 0) ? -change : 0;
 
@@ -44,6 +49,7 @@ class RelativeStrengthIndex {
   int period_;
   double sum_loss_;
   double sum_gain_;
+  std::optional<double> last_price_;
   std::deque<double> gains_;
   std::deque<double> losses_;
 };
@@ -55,16 +61,21 @@ struct OrderInfo {
 
 class GridStrategy : public IStrategy {
  public:
-  GridStrategy(int grid_count, double grid_spacing)
-      : baseline_price_(0),
-        grid_count_(grid_count),
-        grid_spacing_(grid_spacing),
-        index_(30) {}
+  GridStrategy() : baseline_price_(0) {}
+
+  void from_json(const nlohmann::json& json) override {
+    grid_count_ = json["grid_count"];
+    grid_spacing_ = json["grid_spacing"];
+
+    if (!json.contains("rsi_price")) return;
+    for (double price : json["rsi_price"]) {
+      index_.update(price);
+    }
+  }
 
   void update(const Candle& candle) override {
-    index_.update(candle);
+    index_.update(candle.close_price);
     auto value = index_.value();
-
     if (!value) {
       logger_->trace("update end because sri value is none");
       return;
@@ -73,7 +84,8 @@ class GridStrategy : public IStrategy {
     logger_->trace("current sir value is {}", *value);
 
     if (*value < 20) {
-      logger_->trace("cancel all orders because sri is {} which is to low", *value);
+      logger_->trace("cancel all orders because sri is {} which is to low",
+                     *value);
       cancel_all_orders();
       return;
     }
@@ -129,7 +141,7 @@ class GridStrategy : public IStrategy {
     order_balance = 0;
 
     // 这里需要考虑币安的最小交易额的要求
-    if (std::abs(target_position - position) * current_price < 5) {
+    if (std::abs(target_position - position) * current_price < 7) {
       place_buy_order(current_price, order_volume_);
       return;
     }
@@ -180,8 +192,8 @@ class GridStrategy : public IStrategy {
   RelativeStrengthIndex index_;
 };
 
-std::unique_ptr<IStrategy> grid_strategy(int grid_count, double grid_spacing) {
-  return std::make_unique<GridStrategy>(grid_count, grid_spacing);
+std::unique_ptr<IStrategy> grid_strategy() {
+  return std::make_unique<GridStrategy>();
 }
 
 }  // namespace wedge

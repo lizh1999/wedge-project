@@ -34,7 +34,8 @@ int main() {
 
   BacktestContext context(config.balance, 0, 0.001);
   auto broker = context.broker();
-  auto strategy = grid_strategy(config.grid_count, config.grid_spacing);
+  auto strategy = grid_strategy();
+  strategy->from_json(config);
   strategy->set_broker(broker.get());
   strategy->set_logger(logger);
   context.set_strategy(std::move(strategy));

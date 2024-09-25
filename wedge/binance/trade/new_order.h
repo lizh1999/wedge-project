@@ -39,7 +39,9 @@ class NewOrder : public RequestBuilder<NewOrder> {
     return add_param("timeInForce", value_str[static_cast<int>(value)]);
   }
 
-  NewOrder& quantity(double value) { return add_param("quantity", value); }
+  NewOrder& quantity(double value) {
+    return add_param("quantity", std::round(value * 1e5) / 1e5);
+  }
 
   NewOrder& quote_order_qty(double value) {
     return add_param("quoteOrderQty", value);
@@ -64,7 +66,9 @@ class NewOrder : public RequestBuilder<NewOrder> {
     return add_param("newOrderRespType", value_str[static_cast<int>(value)]);
   }
 
-  NewOrder& recv_window(uint64_t value) { return add_param("recvWindow", value); }
+  NewOrder& recv_window(uint64_t value) {
+    return add_param("recvWindow", value);
+  }
 };
 
 }  // namespace wedge::trade

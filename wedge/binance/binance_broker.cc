@@ -1,6 +1,7 @@
+#include "wedge/binance/binance_broker.h"
+
 #include <spdlog/spdlog.h>
 
-#include "wedge/binance/binance_broker.h"
 #include "wedge/binance/binance_http_client.h"
 #include "wedge/binance/market/klines.h"
 #include "wedge/binance/market/ping.h"
@@ -74,6 +75,7 @@ static json request_until(const Request& request, spdlog::logger& logger,
     }
   }
   logger.error("Request failed : {}", to_string(request));
+  logger.flush();
   std::abort();
 }
 

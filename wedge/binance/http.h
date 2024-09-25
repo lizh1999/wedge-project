@@ -3,6 +3,8 @@
 #include <boost/beast/http/verb.hpp>
 #include <boost/optional.hpp>
 
+#include <cinttypes>
+
 #include "wedge/binance/credentials.h"
 
 namespace wedge {
@@ -52,13 +54,13 @@ class RequestBuilder {
 
   Self& add_param(std::string_view key, uint64_t value) {
     char buffer[128];
-    sprintf(buffer, "%llu", value);
+    sprintf(buffer, "%" PRIu64, value);
     return add_param(key, buffer);
   }
 
   Self& add_param(std::string_view key, int64_t value) {
     char buffer[128];
-    sprintf(buffer, "%lld", (long long)value);
+    sprintf(buffer, "%" PRId64, value);
     return add_param(key, buffer);
   }
 
