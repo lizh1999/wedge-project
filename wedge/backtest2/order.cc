@@ -8,13 +8,13 @@ void OrderBase::status(OrderStatus new_status) {
     return;
   }
   if (!triggered_.empty()) {
-    OrderTriggeredEvent event{
+    TriggerOrderEvent event{
         .orders = triggered_,
     };
     listener_->on_event(event);
   }
   if (!canceled_.empty()) {
-    OrderCanceledEvent event{
+    CancelOrderEvent event{
         .orders = canceled_,
     };
     listener_->on_event(event);
@@ -23,7 +23,7 @@ void OrderBase::status(OrderStatus new_status) {
 
 void LimitOrder::update(const Candle& candle) {
   if (side_ == OrderSide::kBuy && candle.low_price <= price_) {
-    OrderFilledEvent event{
+    FillOrderEvent event{
         .side = OrderSide::kBuy,
         .base = quantity_,
         .quote = quantity_ * price_,
@@ -32,7 +32,7 @@ void LimitOrder::update(const Candle& candle) {
     this->status(OrderStatus::kFilled);
   }
   if (side_ == OrderSide::kSell && price_ <= candle.high_price) {
-    OrderFilledEvent event{
+    FillOrderEvent event{
         .side = OrderSide::kSell,
         .base = quantity_,
         .quote = quantity_ * price_,
@@ -43,7 +43,7 @@ void LimitOrder::update(const Candle& candle) {
 }
 
 void MarketOrder::update(const Candle& candle) {
-  OrderFilledEvent event{
+  FillOrderEvent event{
       .side = side_,
       .base = quantity_,
       .quote = quantity_ * candle.close_price,
@@ -54,7 +54,7 @@ void MarketOrder::update(const Candle& candle) {
 
 void StopLossOrder::update(const Candle& candle) {
   if (side_ == OrderSide::kSell && candle.low_price <= price_) {
-    OrderFilledEvent event{
+    FillOrderEvent event{
         .side = OrderSide::kSell,
         .base = quantity_,
         .quote = quantity_ * price_,
@@ -63,7 +63,7 @@ void StopLossOrder::update(const Candle& candle) {
     this->status(OrderStatus::kFilled);
   }
   if (side_ == OrderSide::kBuy && price_ <= candle.high_price) {
-    OrderFilledEvent event{
+    FillOrderEvent event{
         .side = OrderSide::kBuy,
         .base = quantity_,
         .quote = quantity_ * price_,

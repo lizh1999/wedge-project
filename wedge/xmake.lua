@@ -1,5 +1,7 @@
 includes("backtest")
+includes("backtest2")
 includes("binance")
 includes("dataset")
 includes("strategy")
+includes("strategy2")
 includes("trade")

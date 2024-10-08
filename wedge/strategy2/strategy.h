@@ -3,6 +3,8 @@
 #include <nlohmann/json_fwd.hpp>
 #include <spdlog/spdlog.h>
 
+#include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "wedge/common/candle.h"
@@ -13,12 +15,21 @@ namespace wedge {
 
 struct Order {
   uint64_t order_id;
+  std::optional<uint64_t> order_list_id;
   OrderStatus status;
 };
 
+struct OrderList {
+  uint64_t order_list_id;
+  std::vector<Order> orders;
+};
+
 struct ScheduleTaskEvent {
+  double base;
+  double quote;
   Candle current_candle;
   std::vector<Order> open_orders;
+  std::vector<OrderList> open_order_lists;
 };
 
 class StrategyBase {
