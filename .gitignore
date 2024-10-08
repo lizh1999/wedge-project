@@ -9,3 +9,4 @@ logs
 compile_commands.json
 
 .wedge
+.cache
