@@ -26,7 +26,7 @@ OrderIndex TradeBroker::market_sell_order(double quantity) {
 
 void TradeBroker::cancel(OrderIndex index) {
   auto iter = engine_->orders_.find(index);
-  uint16_t order_id = iter->second;
+  uint64_t order_id = iter->second;
   engine_->broker_.cancel_order(symbol_, order_id);
   engine_->orders_.erase(iter);
 }
